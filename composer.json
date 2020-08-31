@@ -1,0 +1,49 @@
+{
+    "name": "react-parallel/object-proxy",
+    "description": "\ud83d\udc68\u200d\ud83d\ude80\ud83d\udef0\ud83d\udc69\u200d\ud83d\ude80 Access an object in the main thread from a ext-parallel thread without copying it over",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cees-Jan Kiewiet",
+            "email": "ceesjank@gmail.com",
+            "homepage": "http://wyrihaximus.net/"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "ext-parallel": "*",
+        "psr/container": "^1.0",
+        "psr/log": "^1.1",
+        "react-parallel/react-parallel": "^1.0"
+    },
+    "require-dev": {
+        "monolog/monolog": "^2.1",
+        "wyrihaximus/async-test-utilities": "^2.2"
+    },
+    "config": {
+        "platform": {
+            "php": "7.4.7"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "ReactParallel\\ObjectProxy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ReactParallel\\Tests\\ObjectProxy\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "post-install-cmd": [
+            "composer normalize"
+        ],
+        "post-update-cmd": [
+            "composer normalize"
+        ]
+    }
+}
