@@ -3,6 +3,10 @@
     "source": {
         "directories": [
             "src"
+        ],
+        "excludes": [
+            "Composer",
+            "AbstractGeneratedProxy"
         ]
     },
     "logs": {
@@ -10,9 +14,9 @@
     },
     "mutators": {
         "@default": true,
-        "MethodCallRemoval": {
+        "PublicVisibility": {
             "ignore": [
-                "ReactParallel\\Pool\\Infinite\\Infinite::startTtlTimer::189"
+                "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22"
             ]
         }
     }
