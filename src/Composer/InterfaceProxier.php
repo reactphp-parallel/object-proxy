@@ -8,6 +8,8 @@ use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
 
+use function array_key_exists;
+use function count;
 use function implode;
 use function is_array;
 use function property_exists;
@@ -20,11 +22,14 @@ final class InterfaceProxier
         'ObjectProxy',
         'Generated',
     ];
+    private const NAMESPACE_GLUE     = '\\';
     /** @var array<Node\Stmt> */
     private array $stmts;
     private string $namespace     = '';
     private string $className     = '';
     private string $interfaceName = '';
+    /** @var array<string, string> */
+    private array $uses = [];
 
     /**
      * @param Node\Stmt[] $stmts
@@ -78,6 +83,10 @@ final class InterfaceProxier
             $node = $this->replaceNamespace($node);
         }
 
+        if ($node instanceof Node\Stmt\Use_) {
+            $this->gatherUses($node);
+        }
+
         /**
          * @psalm-suppress RedundantConditiondkp
          * @psalm-suppress UndefinedPropertyFetch
@@ -105,7 +114,7 @@ final class InterfaceProxier
          * @psalm-suppress PossiblyNullPropertyFetch
          * @phpstan-ignore-next-line
          */
-        $this->namespace = implode('\\', $namespace->name->parts);
+        $this->namespace = implode(self::NAMESPACE_GLUE, $namespace->name->parts);
         /**
          * @psalm-suppress PossiblyNullPropertyAssignment
          * @phpstan-ignore-next-line
@@ -116,18 +125,26 @@ final class InterfaceProxier
         return $namespace;
     }
 
+    private function gatherUses(Node\Stmt\Use_ $use): void
+    {
+        foreach ($use->uses as $singleUse) {
+            /** @phpstan-ignore-next-line  */
+            $this->uses[$singleUse->alias ?? $singleUse->name->parts[count($singleUse->name->parts) - 1]] = $singleUse->name->toString();
+        }
+    }
+
     private function transformInterfaceIntoClass(Node\Stmt\Interface_ $interface): Node\Stmt\Class_
     {
-        $this->className     = str_replace('\\', '__', $this->namespace) . '_' . $interface->name . 'Proxy';
-        $this->interfaceName = $this->namespace . '\\' . $interface->name;
+        $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $interface->name . 'Proxy';
+        $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $interface->name;
 
         return new Node\Stmt\Class_(
             $this->className,
             [
-                'extends' => new Node\Name('\\' . AbstractGeneratedProxy::class),
+                'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
                 'implements' => [
-                    new Node\Name('\\' . $this->interfaceName),
+                    new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),
                 ],
                 'stmts' => $this->iterateStmts($interface->stmts),
             ],
@@ -136,6 +153,16 @@ final class InterfaceProxier
 
     private function populateMethod(Node\Stmt\ClassMethod $method): Node\Stmt\ClassMethod
     {
+        foreach ($method->getParams() as $param) {
+            if (! ($param->type instanceof Node\Name) || array_key_exists((string) $param->type, $this->uses)) {
+                continue;
+            }
+
+            $namespacedClassType               = self::NAMESPACE_GLUE . $this->namespace . self::NAMESPACE_GLUE . (string) $param->type;
+            $param->type                       = new Node\Name($namespacedClassType);
+            $this->uses[(string) $param->type] = $namespacedClassType;
+        }
+
         $method->stmts = [
             new Node\Stmt\Return_(
                 new Node\Expr\MethodCall(
