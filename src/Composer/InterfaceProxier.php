@@ -163,28 +163,42 @@ final class InterfaceProxier
             $this->uses[(string) $param->type] = $namespacedClassType;
         }
 
+        $methodBody = new Node\Expr\MethodCall(
+            new Node\Expr\Variable('this'),
+            'proxyCallToMainThread',
+            [
+                new Node\Arg(
+                    new Node\Expr\ConstFetch(
+                        new Node\Name('__FUNCTION__'),
+                    ),
+                ),
+                new Node\Arg(
+                    new Node\Expr\FuncCall(
+                        new Node\Name('\func_get_args'),
+                    ),
+                ),
+            ]
+        );
+
         $method->stmts = [
-            new Node\Stmt\Return_(
-                new Node\Expr\MethodCall(
-                    new Node\Expr\Variable('this'),
-                    'proxyCallToMainThread',
-                    [
-                        new Node\Arg(
-                            new Node\Expr\ConstFetch(
-                                new Node\Name('__FUNCTION__'),
-                            ),
-                        ),
-                        new Node\Arg(
-                            new Node\Expr\FuncCall(
-                                new Node\Name('\func_get_args'),
-                            ),
-                        ),
-                    ]
-                )
-            ),
+            $this->wrapMethodBody($method, $methodBody),
         ];
+
         $method->setDocComment(new Doc(''));
 
         return $method;
+    }
+
+    private function wrapMethodBody(Node\Stmt\ClassMethod $method, Node\Expr\MethodCall $methodBody): Node\Stmt
+    {
+        /**
+         * @psalm-suppress PossiblyInvalidCast
+         * @phpstan-ignore-next-line
+         */
+        if ((string) $method->getReturnType() !== 'void') {
+            return new Node\Stmt\Return_($methodBody);
+        }
+
+        return new Node\Stmt\Expression($methodBody);
     }
 }
