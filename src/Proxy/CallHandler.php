@@ -7,6 +7,9 @@ namespace ReactParallel\ObjectProxy\Proxy;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Proxy;
+use WyriHaximus\Metrics\Label;
+use WyriHaximus\Metrics\Registry;
+use WyriHaximus\Metrics\Registry\Counters;
 
 use function array_key_exists;
 use function get_class;
@@ -20,15 +23,33 @@ final class CallHandler extends ProxyList
     private array $detectedClasses = [];
 
     private Proxy $proxy;
+    private ?Counters $counter = null;
 
     public function __construct(Proxy $proxy)
     {
         $this->proxy = $proxy;
     }
 
+    public function withMetrics(Registry $registry): self
+    {
+        $self          = clone $this;
+        $self->counter = $registry->counter(
+            'react_parallel_object_proxy_call',
+            'The number of calls from worker threads through proxies to the main thread',
+            new Label\Name('class'),
+            new Label\Name('interface'),
+        );
+
+        return $self;
+    }
+
     public function __invoke(object $object, string $interface): callable
     {
-        return function (Call $call) use ($object): void {
+        return function (Call $call) use ($object, $interface): void {
+            if ($this->counter instanceof Counters) {
+                $this->counter->counter(new Label('class', get_class($object)), new Label('interface', $interface))->incr();
+            }
+
             /** @phpstan-ignore-next-line */
             $outcome = $object->{$call->method()}(...$call->args());
             if (is_object($outcome)) {
