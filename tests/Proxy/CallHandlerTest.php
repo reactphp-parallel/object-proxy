@@ -40,8 +40,9 @@ final class CallHandlerTest extends AsyncTestCase
         });
         $callHandler = new Proxy\CallHandler($proxy);
         $time        = time();
+        $hash        = 'asljdjaslkdhklasdslkadskl';
         $channel     = new Channel(1);
-        $call        = new Call($channel, 'get', [LoggerInterface::class]);
+        $call        = new Call($channel, $hash, 'get', [LoggerInterface::class]);
 
         $loop->futureTick(static function () use ($container, $callHandler, $call): void {
             ($callHandler)($container, ContainerInterface::class)($call);
