@@ -10,12 +10,10 @@ use ReactParallel\ObjectProxy\Message\Call;
 abstract class AbstractGeneratedProxy
 {
     private Channel $out;
-    private string $hash;
 
-    final public function __construct(Channel $out, string $hash)
+    final public function __construct(Channel $out)
     {
-        $this->out  = $out;
-        $this->hash = $hash;
+        $this->out = $out;
     }
 
     /**
@@ -28,7 +26,6 @@ abstract class AbstractGeneratedProxy
         $input = new Channel(1);
         $this->out->send(new Call(
             $input,
-            $this->hash,
             $method,
             $args,
         ));
