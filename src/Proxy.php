@@ -7,26 +7,21 @@ namespace ReactParallel\ObjectProxy;
 use parallel\Channel;
 use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
-use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Proxy\CallHandler;
-use Rx\Observable;
 
 use function array_key_exists;
-use function spl_object_hash;
 
 final class Proxy extends ProxyList
 {
     private const HASNT_PROXYABLE_INTERFACE = false;
 
-    private Channel $output;
-    private Observable $outputStream;
+    private Factory $factory;
     private CallHandler $callHandler;
 
     public function __construct(Factory $factory)
     {
-        $this->output       = new Channel(Channel::Infinite);
-        $this->outputStream = $factory->streams()->channel($this->output)->share();
-        $this->callHandler  = new CallHandler($this);
+        $this->factory     = $factory;
+        $this->callHandler = new CallHandler($this);
     }
 
     public function has(string $interface): bool
@@ -40,14 +35,15 @@ final class Proxy extends ProxyList
             throw NonExistentInterface::create($interface);
         }
 
-        $hash = spl_object_hash($object);
-        $this->outputStream->filter(static fn (Call $call): bool => $call->hash() === $hash)->subscribe(
+        $output = new Channel(Channel::Infinite);
+
+        $this->factory->streams()->channel($output)->subscribe(
             ($this->callHandler)($object, $interface)
         );
 
         $class = self::KNOWN_INTERFACE[$interface];
 
         /** @psalm-suppress InvalidStringClass */
-        return new $class($this->output, $hash);
+        return new $class($output);
     }
 }

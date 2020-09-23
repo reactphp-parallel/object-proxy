@@ -18,14 +18,12 @@ final class CallTest extends AsyncTestCase
     public function getters(): void
     {
         $channel = new Channel(1);
-        $hash    = 'haajshdkjlsajkl';
         $method  = 'hammer';
         $args    = [time()];
 
-        $call = new Call($channel, $hash, $method, $args);
+        $call = new Call($channel, $method, $args);
 
         self::assertSame($channel, $call->channel());
-        self::assertSame($hash, $call->hash());
         self::assertSame($method, $call->method());
         self::assertSame($args, $call->args());
     }
