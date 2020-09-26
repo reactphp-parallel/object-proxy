@@ -9,6 +9,10 @@ use parallel\Channel;
 final class Call
 {
     private Channel $channel;
+
+    private string $hash;
+    private string $interface;
+
     private string $method;
 
     /** @var mixed[] */
@@ -17,16 +21,28 @@ final class Call
     /**
      * @param mixed[] $args
      */
-    public function __construct(Channel $channel, string $method, array $args)
+    public function __construct(Channel $channel, string $hash, string $interface, string $method, array $args)
     {
-        $this->channel = $channel;
-        $this->method  = $method;
-        $this->args    = $args;
+        $this->channel   = $channel;
+        $this->hash      = $hash;
+        $this->interface = $interface;
+        $this->method    = $method;
+        $this->args      = $args;
     }
 
     public function channel(): Channel
     {
         return $this->channel;
+    }
+
+    public function hash(): string
+    {
+        return $this->hash;
+    }
+
+    public function interface(): string
+    {
+        return $this->interface;
     }
 
     public function method(): string

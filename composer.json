@@ -20,6 +20,8 @@
         "psr/container": "^1.0",
         "psr/log": "^1.1",
         "react-parallel/react-parallel": "^1.0",
+        "react/datagram": "^1.5",
+        "rx/operator-extras": "^2.1",
         "thecodingmachine/safe": "^1.2",
         "wyrihaximus/constants": "^1.5",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
@@ -43,7 +45,14 @@
             "object-proxy": {
                 "interfaces-to-proxy": [
                     "Psr\\Container\\ContainerInterface",
-                    "Psr\\Log\\LoggerInterface"
+                    "Psr\\Log\\LoggerInterface",
+                    "WyriHaximus\\Metrics\\Registry",
+                    "WyriHaximus\\Metrics\\Registry\\Counters",
+                    "WyriHaximus\\Metrics\\Registry\\Gauges",
+                    "WyriHaximus\\Metrics\\Registry\\Histograms",
+                    "WyriHaximus\\Metrics\\Counter",
+                    "WyriHaximus\\Metrics\\Gauge",
+                    "WyriHaximus\\Metrics\\Histogram"
                 ]
             }
         }
