@@ -21,6 +21,8 @@
         "psr/log": "^1.1",
         "react-parallel/react-parallel": "^1.0",
         "react/datagram": "^1.5",
+        "react/promise-stream": "^1.2",
+        "react/socket": "^1.6",
         "rx/operator-extras": "^2.1",
         "thecodingmachine/safe": "^1.2",
         "wyrihaximus/constants": "^1.5",

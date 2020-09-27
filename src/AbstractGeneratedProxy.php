@@ -8,6 +8,8 @@ use parallel\Channel;
 use React\Datagram\Factory;
 use React\Datagram\Socket;
 use React\EventLoop\StreamSelectLoop;
+use React\Socket\ConnectionInterface;
+use React\Socket\UnixConnector;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 
@@ -16,9 +18,9 @@ use function serialize;
 abstract class AbstractGeneratedProxy
 {
     private Channel $out;
-    private int $port;
+    private string $port;
 
-    final public function __construct(string $out, int $port)
+    final public function __construct(string $out, string $port)
     {
         $this->out  = Channel::open($out);
         $this->port = $port;
@@ -47,14 +49,10 @@ abstract class AbstractGeneratedProxy
     final protected function notifyMainThreadAboutDestruction(string $interface): void
     {
         $loop    = new StreamSelectLoop();
-        $factory = new Factory($loop);
 
-        $factory->createClient('127.0.0.1:' . $this->port)->then(function (Socket $client) use ($loop, $interface): void {
-            $client->on('error', static function ($e) {
-                var_export([__FILE__, __LINE__, (string)$e]);
-            });
-            $client->send(serialize(new Destruct((string) $this->out, $interface)));
-            $loop->addTimer(1, [$client, 'close']);
+        $connector = new UnixConnector($loop);
+        $connector->connect($this->port)->then(function (ConnectionInterface $connection) use ($interface) {
+            $connection->end(serialize(new Destruct((string) $this->out, $interface)));
         });
 
         $loop->run();

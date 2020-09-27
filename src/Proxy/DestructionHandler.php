@@ -38,6 +38,6 @@ final class DestructionHandler
             return;
         }
 
-        $this->counter->counter(new Label('interface', $destruct->interface()));
+        $this->counter->counter(new Label('interface', $destruct->interface()))->incr();
     }
 }

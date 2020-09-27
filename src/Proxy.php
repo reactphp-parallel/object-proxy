@@ -8,6 +8,8 @@ use parallel\Channel;
 use React\Datagram\Factory as DatagramFactory;
 use React\Datagram\Socket;
 use React\Promise\PromiseInterface;
+use React\Socket\ConnectionInterface;
+use React\Socket\UnixServer;
 use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Destruct;
@@ -24,6 +26,7 @@ use function explode;
 use function get_class;
 use function random_int;
 use function React\Promise\resolve;
+use function React\Promise\Stream\buffer;
 
 final class Proxy extends ProxyList
 {
@@ -33,8 +36,8 @@ final class Proxy extends ProxyList
     private CallHandler $callHandler;
     private ?Counters $counter = null;
 
-    private ?Socket $destructionChannel  = null;
-    private ?int $destructionChannelPort = null;
+    private ?UnixServer $destructionChannel  = null;
+    private ?string $destructionChannelAddress = null;
     /** @var array<string, Channel> */
     private array $channels = [];
 
@@ -85,7 +88,7 @@ final class Proxy extends ProxyList
         $class = self::KNOWN_INTERFACE[$interface];
 
         /** @psalm-suppress InvalidStringClass */
-        return new $class((string) $output, $this->destructionChannelPort);
+        return new $class((string) $output, $this->destructionChannelAddress);
     }
 
     public function __destruct()
@@ -100,7 +103,7 @@ final class Proxy extends ProxyList
 
         $this->channels = [];
 
-        if (! ($this->destructionChannel instanceof Socket)) {
+        if (! ($this->destructionChannel instanceof UnixServer)) {
             return;
         }
 
@@ -109,18 +112,28 @@ final class Proxy extends ProxyList
 
     private function setUpSocketServer(DestructionHandler $destructionHandler): void
     {
-        $this->startSocketServer(random_int(10_000, 50_000))->then(function (Socket $server) use ($destructionHandler): void {
-            $server->on('error', static function ($e) {
-                var_export([__FILE__, __LINE__, (string)$e]);
-            });
-            $this->destructionChannel     = $server;
-            $this->destructionChannelPort = (int) explode(':', $server->getLocalAddress())[1];
-            (new FromEventEmitterObservable($server, 'message'))->map(static fn (string $message): Destruct => unserialize($message))->subscribe($destructionHandler);
+        $this->destructionChannelAddress = '/tmp/object-proxy-' . md5(spl_object_hash($this)) . '.sock';
+        $this->destructionChannel = new UnixServer($this->destructionChannelAddress, $this->factory->loop());
+        $this->destructionChannel->on('connection', function (ConnectionInterface $connection) use ($destructionHandler) {
+            buffer($connection)->then(function (string $message) use ($destructionHandler) {
+                $destructionHandler(unserialize($message));
+            })->done();
         });
+        $this->destructionChannel->on('error', static function ($e) {
+            var_export([__FILE__, __LINE__, (string)$e]);
+        });
+//        $this->startSocketServer(random_int(10_000, 50_000))->then(function (Socket $server) use ($destructionHandler): void {
+//            $server->on('error', static function ($e) {
+//                var_export([__FILE__, __LINE__, (string)$e]);
+//            });
+//            $this->destructionChannel     = $server;
+//            $this->destructionChannelAddress = (int) explode(':', $server->getLocalAddress())[1];
+//            (new FromEventEmitterObservable($server, 'message'))->map(static fn (string $message): Destruct => unserialize($message))->subscribe($destructionHandler);
+//        });
     }
 
-    private function startSocketServer(int $port): PromiseInterface
-    {
-        return (new DatagramFactory($this->factory->loop()))->createServer('127.0.0.1:' . $port)->then(null, fn (): PromiseInterface => resolve($this->startSocketServer(++$port)));
-    }
+//    private function startSocketServer(int $port): PromiseInterface
+//    {
+//        return (new DatagramFactory($this->factory->loop()))->createServer('127.0.0.1:' . $port)->then(null, fn (): PromiseInterface => resolve($this->startSocketServer(++$port)));
+//    }
 }
