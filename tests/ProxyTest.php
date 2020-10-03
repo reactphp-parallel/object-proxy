@@ -50,7 +50,7 @@ final class ProxyTest extends AsyncTestCase
 
                 return $time;
             }, [$loggerProxy, $time])->always(static function () use ($factory): void {
-                $factory->lowLevelPool()->kill();
+                $factory->lowLevelPool()->close();
             }),
             $loop
         );
@@ -87,7 +87,7 @@ final class ProxyTest extends AsyncTestCase
 
                 return $time;
             }, [$containerProxy, $time])->always(static function () use ($factory): void {
-                $factory->lowLevelPool()->kill();
+                $factory->lowLevelPool()->close();
             }),
             $loop
         );
@@ -133,8 +133,7 @@ final class ProxyTest extends AsyncTestCase
                 all($promises)->always(static function () use ($limitedPool): void {
                     $limitedPool->close();
                 }),
-                $loop,
-                30
+                $loop
             );
             self::assertCount(count($promises), $results);
         } catch (TimeoutException $timeoutException) {

@@ -13,8 +13,10 @@ use Composer\Package\RootPackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use PhpParser\Lexer\Emulative;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Rx\Observable;
 use Throwable;
@@ -75,6 +77,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $start    = microtime(true);
         $io       = $event->getIO();
         $composer = $event->getComposer();
+        $rootPath = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage());
 
         if (! function_exists('React\Promise\Resolve')) {
             /** @psalm-suppress UnresolvableInclude */
@@ -124,7 +127,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $io->write('<info>react-parallel/object-proxy:</info> Locating interfaces');
 
         $installPath = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
-        $proxies     = self::getProxies($composer, $io);
+        $proxies     = self::getProxies($composer, $io, $rootPath);
 
         $io->write('<info>react-parallel/object-proxy:</info> Found ' . count($proxies) . ' interface(s) and generated a proxy for each of them');
 
@@ -141,7 +144,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                 "['%s']",
                 '%s',
                 file_get_contents(
-                    self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/etc/ProxyList.php'
+                    $rootPath . '/etc/ProxyList.php'
                 )
             ),
             var_export($interfaces, TRUE_)
@@ -174,9 +177,9 @@ final class Installer implements PluginInterface, EventSubscriberInterface
     /**
      * @return array<InterfaceProxier>
      */
-    private static function getProxies(Composer $composer, IOInterface $io): array
+    private static function getProxies(Composer $composer, IOInterface $io, string $rootPath): array
     {
-        $phpParser = $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+        $phpParser = $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7, new Emulative(['comments' => true]));
 
         $result     = [];
         $packages   = $composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
@@ -189,14 +192,22 @@ final class Installer implements PluginInterface, EventSubscriberInterface
             static fn (array $interfaces): Observable => observableFromArray(array_unique(array_values($interfaces)))
         )->map(
             /** @phpstan-ignore-next-line */
-            static function (string $interface) use ($io, $phpParser): ?array {
+            static function (string $interface) use ($io, $phpParser, $rootPath): ?array {
                 $io->write(sprintf('<info>react-parallel/object-proxy:</info> Creating proxy for %s', $interface));
 
                 /**
                  * @psalm-suppress ArgumentTypeCoercion
                  * @phpstan-ignore-next-line
                  */
-                return $phpParser->parse(file_get_contents((new ReflectionClass($interface))->getFileName()));
+                $fileName = (new ReflectionClass($interface))->getFileName();
+                if ($interface === LoggerInterface::class) {
+                    $fileName = $rootPath . '/vendor/psr/log/Psr/Log/LoggerInterface.php';
+                }
+
+                /**
+                 * @phpstan-ignore-next-line
+                 */
+                return $phpParser->parse(file_get_contents($fileName));
             }
         )->filter(
             static fn (?array $ast): bool => is_array($ast)

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Composer;
 
 use PhpParser\Builder\Method;
-use PhpParser\Comment\Doc;
+use PhpParser\Comment;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
 
@@ -15,6 +15,9 @@ use function implode;
 use function is_array;
 use function property_exists;
 use function str_replace;
+use function strpos;
+
+use const WyriHaximus\Constants\Boolean\FALSE_;
 
 final class InterfaceProxier
 {
@@ -180,7 +183,7 @@ final class InterfaceProxier
 
         $methodBody = new Node\Expr\MethodCall(
             new Node\Expr\Variable('this'),
-            'proxyCallToMainThread',
+            $this->isMethodVoid($method) ? 'proxyNotifyMainThread' : 'proxyCallToMainThread',
             [
                 new Node\Arg(
                     new Node\Expr\ConstFetch(
@@ -199,21 +202,32 @@ final class InterfaceProxier
             $this->wrapMethodBody($method, $methodBody),
         ];
 
-        $method->setDocComment(new Doc(''));
-
         return $method;
     }
 
     private function wrapMethodBody(Node\Stmt\ClassMethod $method, Node\Expr\MethodCall $methodBody): Node\Stmt
     {
+        if ($this->isMethodVoid($method)) {
+            return new Node\Stmt\Expression($methodBody);
+        }
+
+        return new Node\Stmt\Return_($methodBody);
+    }
+
+    private function isMethodVoid(Node\Stmt\ClassMethod $method): bool
+    {
         /**
          * @psalm-suppress PossiblyInvalidCast
          * @phpstan-ignore-next-line
          */
-        if ((string) $method->getReturnType() !== 'void') {
-            return new Node\Stmt\Return_($methodBody);
-        }
+        return (string) $method->getReturnType() === 'void' ? true : $this->isMethodVoidFromDocBlock($method);
+    }
 
-        return new Node\Stmt\Expression($methodBody);
+    private function isMethodVoidFromDocBlock(Node\Stmt\ClassMethod $method): bool
+    {
+        /**
+         * @psalm-suppress PossiblyNullReference
+         */
+        return $method->getDocComment() instanceof Comment && strpos($method->getDocComment()->getText(), '@return void') !== FALSE_;
     }
 }

@@ -9,6 +9,7 @@ use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
+use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Proxy\Instance;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry;
@@ -26,6 +27,7 @@ final class Proxy extends ProxyList
 
     private Factory $factory;
     private ?Counters $counterCreate   = null;
+    private ?Counters $counterNotify   = null;
     private ?Counters $counterCall     = null;
     private ?Counters $counterDestruct = null;
 
@@ -56,6 +58,12 @@ final class Proxy extends ProxyList
         $self->counterCall     = $registry->counter(
             'react_parallel_object_proxy_call',
             'The number of calls from worker threads through proxies to the main thread',
+            new Label\Name('class'),
+            new Label\Name('interface'),
+        );
+        $self->counterNotify   = $registry->counter(
+            'react_parallel_object_proxy_notify',
+            'The number of notifications from worker threads through proxies to the main thread',
             new Label\Name('class'),
             new Label\Name('interface'),
         );
@@ -103,6 +111,10 @@ final class Proxy extends ProxyList
     private function setUpHandlers(): void
     {
         $this->factory->streams()->channel($this->in)->subscribe(function (object $message): void {
+            if ($message instanceof Notify) {
+                $this->handleNotify($message);
+            }
+
             if ($message instanceof Call) {
                 $this->handleCall($message);
             }
@@ -115,6 +127,22 @@ final class Proxy extends ProxyList
                 $this->handleDestruct($message);
             });
         });
+    }
+
+    private function handleNotify(Notify $notify): void
+    {
+        if (! array_key_exists($notify->hash(), $this->instances)) {
+            return;
+        }
+
+        $instance = $this->instances[$notify->hash()];
+        $instance->reference($notify->objectHash());
+        if ($this->counterNotify instanceof Counters) {
+            $this->counterNotify->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
+        }
+
+        /** @phpstan-ignore-next-line */
+        $instance->object()->{$notify->method()}(...$notify->args());
     }
 
     private function handleCall(Call $call): void
