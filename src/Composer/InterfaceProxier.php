@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Composer;
 
+use PhpParser\Builder\Method;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
@@ -138,6 +139,21 @@ final class InterfaceProxier
         $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $interface->name . 'Proxy';
         $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $interface->name;
 
+        $stmts   = $this->iterateStmts($interface->stmts);
+        $stmts[] = (new Method('__destruct'))->addStmt(
+            new Node\Stmt\Expression(
+                new Node\Expr\MethodCall(
+                    new Node\Expr\Variable('this'),
+                    'notifyMainThreadAboutDestruction',
+                    [
+                        new Node\Arg(
+                            new Node\Scalar\String_($this->interfaceName),
+                        ),
+                    ],
+                )
+            ),
+        )->makePublic()->makeFinal()->getNode();
+
         return new Node\Stmt\Class_(
             $this->className,
             [
@@ -146,13 +162,17 @@ final class InterfaceProxier
                 'implements' => [
                     new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),
                 ],
-                'stmts' => $this->iterateStmts($interface->stmts),
+                'stmts' => $stmts,
             ],
         );
     }
 
     private function populateMethod(Node\Stmt\ClassMethod $method): Node\Stmt\ClassMethod
     {
+        if ((string) $method->name === '__destruct') {
+            return $method;
+        }
+
         foreach ($method->getParams() as $param) {
             if (! ($param->type instanceof Node\Name) || array_key_exists((string) $param->type, $this->uses)) {
                 continue;
@@ -167,6 +187,9 @@ final class InterfaceProxier
             new Node\Expr\Variable('this'),
             'proxyCallToMainThread',
             [
+                new Node\Arg(
+                    new Node\Scalar\String_($this->interfaceName),
+                ),
                 new Node\Arg(
                     new Node\Expr\ConstFetch(
                         new Node\Name('__FUNCTION__'),

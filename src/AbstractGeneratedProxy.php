@@ -6,14 +6,17 @@ namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
 use ReactParallel\ObjectProxy\Message\Call;
+use ReactParallel\ObjectProxy\Message\Destruct;
 
 abstract class AbstractGeneratedProxy
 {
     private Channel $out;
+    private string $hash;
 
-    final public function __construct(Channel $out)
+    final public function __construct(Channel $out, string $hash)
     {
-        $this->out = $out;
+        $this->out  = $out;
+        $this->hash = $hash;
     }
 
     /**
@@ -21,18 +24,29 @@ abstract class AbstractGeneratedProxy
      *
      * @return mixed
      */
-    final protected function proxyCallToMainThread(string $method, array $args)
+    final protected function proxyCallToMainThread(string $interface, string $method, array $args)
     {
         $input = new Channel(1);
-        $this->out->send(new Call(
+        $call  = new Call(
             $input,
+            $this->hash,
+            $interface,
             $method,
             $args,
-        ));
-
+        );
+        $this->out->send($call);
         $result = $input->recv();
         $input->close();
 
         return $result;
+    }
+
+    final protected function notifyMainThreadAboutDestruction(string $interface): void
+    {
+        try {
+            $this->out->send(new Destruct($this->hash, $interface));
+        } catch (Channel\Error\Closed $closed) {
+            // @ignoreException
+        }
     }
 }
