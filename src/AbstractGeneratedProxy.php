@@ -47,12 +47,11 @@ abstract class AbstractGeneratedProxy
     /**
      * @param mixed[] $args
      */
-    final protected function proxyNotifyMainThread(string $interface, string $method, array $args): void
+    final protected function proxyNotifyMainThread(string $method, array $args): void
     {
         $this->out->send(new Notify(
             $this->hash,
             spl_object_hash($this),
-            $interface,
             $method,
             $args,
         ));
