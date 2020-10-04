@@ -23,6 +23,7 @@ use WyriHaximus\Metrics\Registry;
 use Yuloh\Container\Container;
 
 use function count;
+use function explode;
 use function range;
 use function React\Promise\all;
 use function time;
@@ -134,7 +135,7 @@ final class ProxyTest extends AsyncTestCase
                 // @phpstan-ignore-next-line
                 all($promises)->then(static function (array $v) use ($factory): PromiseInterface {
                     return new Promise(static function (callable $resolve) use ($v, $factory): void {
-                        $factory->loop()->addTimer(3, static function () use ($resolve, $v): void {
+                        $factory->loop()->addTimer(20, static function () use ($resolve, $v): void {
                             $resolve($v);
                         });
                     });
@@ -155,7 +156,17 @@ final class ProxyTest extends AsyncTestCase
         self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 101', $txt);
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 101', $txt);
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 101', $txt);
-        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 101', $txt);
-        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 13', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 101', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 202', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"}', $txt);
+        self::assertGreaterThanOrEqual(
+            195,
+            (int) explode("\n", explode('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"}', $txt)[1])[0]
+        );
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"}', $txt);
+        self::assertGreaterThanOrEqual(
+            13,
+            (int) explode("\n", explode('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"}', $txt)[1])[0]
+        );
     }
 }
