@@ -9,6 +9,7 @@ use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
+use ReactParallel\ObjectProxy\Proxy\Instance;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry;
 use WyriHaximus\Metrics\Registry\Counters;
@@ -30,7 +31,7 @@ final class Proxy extends ProxyList
 
     private Channel $in;
 
-    /** @var array<string, object> */
+    /** @var array<string, Instance> */
     private array $instances = [];
 
     /** @var array<string, string|false> */
@@ -61,6 +62,7 @@ final class Proxy extends ProxyList
         $self->counterDestruct = $registry->counter(
             'react_parallel_object_proxy_destruct',
             'Number of destroyed proxies by the garbage collector',
+            new Label\Name('class'),
             new Label\Name('interface'),
         );
         $self->in              = new Channel(Channel::Infinite);
@@ -80,14 +82,14 @@ final class Proxy extends ProxyList
             throw NonExistentInterface::create($interface);
         }
 
-        if ($this->counterCreate instanceof Counters) {
-            $this->counterCreate->counter(new Label('class', get_class($object)), new Label('interface', $interface))->incr();
-        }
-
         $class = self::KNOWN_INTERFACE[$interface];
         $hash  = bin2hex(random_bytes(13));
 
-        $this->instances[$hash] = $object;
+        $this->instances[$hash] = new Instance($object, $interface);
+
+        if ($this->counterCreate instanceof Counters) {
+            $this->counterCreate->counter(new Label('class', $this->instances[$hash]->class()), new Label('interface', $interface))->incr();
+        }
 
         /** @psalm-suppress InvalidStringClass */
         return new $class($this->in, $hash);
@@ -117,13 +119,18 @@ final class Proxy extends ProxyList
 
     private function handleCall(Call $call): void
     {
-        $object = $this->instances[$call->hash()];
+        if (! array_key_exists($call->hash(), $this->instances)) {
+            return;
+        }
+
+        $instance = $this->instances[$call->hash()];
+        $instance->reference($call->objectHash());
         if ($this->counterCall instanceof Counters) {
-            $this->counterCall->counter(new Label('class', get_class($object)), new Label('interface', $call->interface()))->incr();
+            $this->counterCall->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
         }
 
         /** @phpstan-ignore-next-line */
-        $outcome = $object->{$call->method()}(...$call->args());
+        $outcome = $instance->object()->{$call->method()}(...$call->args());
 
         if (is_object($outcome)) {
             $outcomeClass = get_class($outcome);
@@ -142,13 +149,21 @@ final class Proxy extends ProxyList
 
     private function handleDestruct(Destruct $destruct): void
     {
-        unset($this->instances[$destruct->hash()]);
+        if (! array_key_exists($destruct->hash(), $this->instances)) {
+            return;
+        }
+
+        $instance = $this->instances[$destruct->hash()];
+        $count    = $instance->dereference($destruct->objectHash());
+        if ($count === 0) {
+            unset($this->instances[$destruct->hash()]);
+        }
 
         if (! ($this->counterDestruct instanceof Counters)) {
             return;
         }
 
-        $this->counterDestruct->counter(new Label('interface', $destruct->interface()))->incr();
+        $this->counterDestruct->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
     }
 
     /** @phpstan-ignore-next-line */

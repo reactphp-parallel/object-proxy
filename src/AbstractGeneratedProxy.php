@@ -8,6 +8,8 @@ use parallel\Channel;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 
+use function spl_object_hash;
+
 abstract class AbstractGeneratedProxy
 {
     private Channel $out;
@@ -30,6 +32,7 @@ abstract class AbstractGeneratedProxy
         $call  = new Call(
             $input,
             $this->hash,
+            spl_object_hash($this),
             $interface,
             $method,
             $args,
@@ -44,7 +47,7 @@ abstract class AbstractGeneratedProxy
     final protected function notifyMainThreadAboutDestruction(string $interface): void
     {
         try {
-            $this->out->send(new Destruct($this->hash, $interface));
+            $this->out->send(new Destruct($this->hash, spl_object_hash($this), $interface));
         } catch (Channel\Error\Closed $closed) {
             // @ignoreException
         }
