@@ -145,11 +145,6 @@ final class InterfaceProxier
                 new Node\Expr\MethodCall(
                     new Node\Expr\Variable('this'),
                     'notifyMainThreadAboutDestruction',
-                    [
-                        new Node\Arg(
-                            new Node\Scalar\String_($this->interfaceName),
-                        ),
-                    ],
                 )
             ),
         )->makePublic()->makeFinal()->getNode();
@@ -187,9 +182,6 @@ final class InterfaceProxier
             new Node\Expr\Variable('this'),
             'proxyCallToMainThread',
             [
-                new Node\Arg(
-                    new Node\Scalar\String_($this->interfaceName),
-                ),
                 new Node\Arg(
                     new Node\Expr\ConstFetch(
                         new Node\Name('__FUNCTION__'),

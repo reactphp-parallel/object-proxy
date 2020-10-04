@@ -12,7 +12,6 @@ final class Call
 
     private string $hash;
     private string $objectHash;
-    private string $interface;
 
     private string $method;
 
@@ -22,12 +21,11 @@ final class Call
     /**
      * @param mixed[] $args
      */
-    public function __construct(Channel $channel, string $hash, string $objectHash, string $interface, string $method, array $args)
+    public function __construct(Channel $channel, string $hash, string $objectHash, string $method, array $args)
     {
         $this->channel    = $channel;
         $this->hash       = $hash;
         $this->objectHash = $objectHash;
-        $this->interface  = $interface;
         $this->method     = $method;
         $this->args       = $args;
     }
@@ -45,11 +43,6 @@ final class Call
     public function objectHash(): string
     {
         return $this->objectHash;
-    }
-
-    public function interface(): string
-    {
-        return $this->interface;
     }
 
     public function method(): string
