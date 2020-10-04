@@ -15,9 +15,27 @@
     },
     "mutators": {
         "@default": true,
+        "ArrayItemRemoval": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::119"
+            ]
+        },
+        "InstanceOf_": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::119"
+            ]
+        },
+        "MethodCallRemoval": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct::114"
+            ]
+        },
         "PublicVisibility": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22"
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct::109",
+                "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22",
+                "ReactParallel\\ObjectProxy\\Message\\Parcel::notify::27",
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface::36"
             ]
         }
     }

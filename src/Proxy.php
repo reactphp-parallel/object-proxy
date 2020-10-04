@@ -20,16 +20,15 @@ use WyriHaximus\Metrics\Registry\Counters;
 
 use function ApiClients\Tools\Rx\observableFromArray;
 use function array_key_exists;
-use function bin2hex;
 use function get_class;
 use function is_object;
-use function random_bytes;
-use function var_export;
+use function spl_object_hash;
 use function WyriHaximus\iteratorOrArrayToArray;
 
 final class Proxy extends ProxyList
 {
-    private const HASNT_PROXYABLE_INTERFACE = false;
+    private const DESTRUCT_DEFERENCE_SECONDS = 10;
+    private const HASNT_PROXYABLE_INTERFACE  = false;
 
     private Factory $factory;
     private ?Counters $counterCreate   = null;
@@ -98,7 +97,7 @@ final class Proxy extends ProxyList
 
         $class    = self::KNOWN_INTERFACE[$interface];
         $instance = new Instance($object, $interface);
-        $hash     = $instance->class() . '___' . bin2hex(random_bytes(13));
+        $hash     = $instance->class() . '___' . spl_object_hash($object);
 
         $this->instances[$hash] = $instance;
 
@@ -140,7 +139,7 @@ final class Proxy extends ProxyList
                 return;
             }
 
-            $this->factory->loop()->addTimer(10, function () use ($message): void {
+            $this->factory->loop()->addTimer(self::DESTRUCT_DEFERENCE_SECONDS, function () use ($message): void {
                 $this->handleDestruct($message);
             });
         });
@@ -149,8 +148,6 @@ final class Proxy extends ProxyList
     private function handleExistence(Existence $existence): void
     {
         if (! array_key_exists($existence->hash(), $this->instances)) {
-            var_export($existence);
-
             return;
         }
 
