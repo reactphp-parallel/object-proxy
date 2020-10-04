@@ -7,6 +7,7 @@ namespace ReactParallel\ObjectProxy;
 use parallel\Channel;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
+use ReactParallel\ObjectProxy\Message\Notify;
 
 use function spl_object_hash;
 
@@ -24,7 +25,7 @@ abstract class AbstractGeneratedProxy
     /**
      * @param mixed[] $args
      *
-     * @return mixed
+     * @return mixed|void
      */
     final protected function proxyCallToMainThread(string $method, array $args)
     {
@@ -41,6 +42,20 @@ abstract class AbstractGeneratedProxy
         $input->close();
 
         return $result;
+    }
+
+    /**
+     * @param mixed[] $args
+     */
+    final protected function proxyNotifyMainThread(string $interface, string $method, array $args): void
+    {
+        $this->out->send(new Notify(
+            $this->hash,
+            spl_object_hash($this),
+            $interface,
+            $method,
+            $args,
+        ));
     }
 
     final protected function notifyMainThreadAboutDestruction(): void
