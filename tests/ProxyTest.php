@@ -149,6 +149,6 @@ final class ProxyTest extends AsyncTestCase
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 101', $txt);
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 101', $txt);
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 101', $txt);
-        self::assertStringContainsString('aaareact_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 101', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 13', $txt);
     }
 }
