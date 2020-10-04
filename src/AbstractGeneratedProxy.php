@@ -26,14 +26,13 @@ abstract class AbstractGeneratedProxy
      *
      * @return mixed
      */
-    final protected function proxyCallToMainThread(string $interface, string $method, array $args)
+    final protected function proxyCallToMainThread(string $method, array $args)
     {
         $input = new Channel(1);
         $call  = new Call(
             $input,
             $this->hash,
             spl_object_hash($this),
-            $interface,
             $method,
             $args,
         );
@@ -44,10 +43,10 @@ abstract class AbstractGeneratedProxy
         return $result;
     }
 
-    final protected function notifyMainThreadAboutDestruction(string $interface): void
+    final protected function notifyMainThreadAboutDestruction(): void
     {
         try {
-            $this->out->send(new Destruct($this->hash, spl_object_hash($this), $interface));
+            $this->out->send(new Destruct($this->hash, spl_object_hash($this)));
         } catch (Channel\Error\Closed $closed) {
             // @ignoreException
         }

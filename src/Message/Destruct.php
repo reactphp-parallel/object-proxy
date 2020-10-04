@@ -8,13 +8,11 @@ final class Destruct
 {
     private string $hash;
     private string $objectHash;
-    private string $interface;
 
-    public function __construct(string $hash, string $objectHash, string $interface)
+    public function __construct(string $hash, string $objectHash)
     {
         $this->hash       = $hash;
         $this->objectHash = $objectHash;
-        $this->interface  = $interface;
     }
 
     public function hash(): string
@@ -25,10 +23,5 @@ final class Destruct
     public function objectHash(): string
     {
         return $this->objectHash;
-    }
-
-    public function interface(): string
-    {
-        return $this->interface;
     }
 }
