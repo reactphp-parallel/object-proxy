@@ -8,6 +8,8 @@ use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory as EventLoopFactory;
+use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 use React\Promise\Timer\TimeoutException;
 use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\NonExistentInterface;
@@ -130,7 +132,13 @@ final class ProxyTest extends AsyncTestCase
         try {
             $results = $this->await(
                 // @phpstan-ignore-next-line
-                all($promises)->always(static function () use ($limitedPool): void {
+                all($promises)->then(static function (array $v) use ($factory): PromiseInterface {
+                    return new Promise(static function (callable $resolve) use ($v, $factory): void {
+                        $factory->loop()->addTimer(3, static function () use ($resolve, $v): void {
+                            $resolve($v);
+                        });
+                    });
+                })->always(static function () use ($limitedPool): void {
                     $limitedPool->close();
                 }),
                 $loop
