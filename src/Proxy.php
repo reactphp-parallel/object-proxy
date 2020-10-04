@@ -148,7 +148,7 @@ final class Proxy extends ProxyList
             return;
         }
 
-        $this->counterDestruct->counter(new Label('interface', $destruct->interface()));
+        $this->counterDestruct->counter(new Label('interface', $destruct->interface()))->incr();
     }
 
     /** @phpstan-ignore-next-line */
