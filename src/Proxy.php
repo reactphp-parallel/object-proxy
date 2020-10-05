@@ -20,6 +20,7 @@ use function bin2hex;
 use function get_class;
 use function is_object;
 use function random_bytes;
+use function var_export;
 
 final class Proxy extends ProxyList
 {
@@ -132,6 +133,8 @@ final class Proxy extends ProxyList
     private function handleNotify(Notify $notify): void
     {
         if (! array_key_exists($notify->hash(), $this->instances)) {
+            var_export($notify);
+
             return;
         }
 
@@ -148,6 +151,8 @@ final class Proxy extends ProxyList
     private function handleCall(Call $call): void
     {
         if (! array_key_exists($call->hash(), $this->instances)) {
+            var_export($call);
+
             return;
         }
 

@@ -169,4 +169,44 @@ final class ProxyTest extends AsyncTestCase
             (int) explode("\n", explode('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"}', $txt)[1])[0]
         );
     }
+
+    /**
+     * @test
+     */
+    public function destructionEdgeCases(): void
+    {
+        $loop          = EventLoopFactory::create();
+        $factory       = new Factory($loop);
+        $registry      = new InMemmoryRegistry();
+        $proxy         = (new Proxy($factory))->withMetrics($registry);
+        $limitedPool   = $factory->limitedPool(1);
+        $registryProxy = $proxy->create($registry, Registry::class);
+        $fn            = static function (int $int, Registry $registryProxy): int {
+            $registryProxy->counter('counter', 'bla bla bla', new Label\Name('name'))->counter(new Label('name', 'value'))->incr();
+
+            return $int;
+        };
+
+        $promises = [];
+        foreach (range(0, 3) as $i) {
+            $promises[] = $limitedPool->run($fn, [$i, $registryProxy]);
+        }
+
+        $leet = $this->await(
+            // @phpstan-ignore-next-line
+            all($promises)->then(static function (array $v) use ($factory): PromiseInterface {
+                return new Promise(static function (callable $resolve) use ($v, $factory): void {
+                    $factory->loop()->addTimer(20, static function () use ($resolve, $v): void {
+                        $resolve($v);
+                    });
+                });
+            })->then(static function () use ($fn, $registryProxy, $limitedPool): PromiseInterface {
+                return $limitedPool->run($fn, [1337, $registryProxy]);
+            })->always(static function () use ($limitedPool): void {
+                $limitedPool->close();
+            }),
+            $loop
+        );
+        self::assertSame(1337, $leet);
+    }
 }
