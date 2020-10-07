@@ -9,6 +9,7 @@ use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
+use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Proxy\Instance;
 use WyriHaximus\Metrics\Label;
@@ -112,12 +113,22 @@ final class Proxy extends ProxyList
     private function setUpHandlers(): void
     {
         $this->factory->streams()->channel($this->in)->subscribe(function (object $message): void {
+            if ($message instanceof Existence) {
+                $this->handleExistence($message);
+
+                return;
+            }
+
             if ($message instanceof Notify) {
                 $this->handleNotify($message);
+
+                return;
             }
 
             if ($message instanceof Call) {
                 $this->handleCall($message);
+
+                return;
             }
 
             if (! ($message instanceof Destruct)) {
@@ -130,11 +141,21 @@ final class Proxy extends ProxyList
         });
     }
 
+    private function handleExistence(Existence $existence): void
+    {
+        if (! array_key_exists($existence->hash(), $this->instances)) {
+            var_export($existence);
+
+            return;
+        }
+
+        $instance = $this->instances[$existence->hash()];
+        $instance->reference($existence->objectHash());
+    }
+
     private function handleNotify(Notify $notify): void
     {
         if (! array_key_exists($notify->hash(), $this->instances)) {
-            var_export($notify);
-
             return;
         }
 
@@ -151,8 +172,6 @@ final class Proxy extends ProxyList
     private function handleCall(Call $call): void
     {
         if (! array_key_exists($call->hash(), $this->instances)) {
-            var_export($call);
-
             return;
         }
 
