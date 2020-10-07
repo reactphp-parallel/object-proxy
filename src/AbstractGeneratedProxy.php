@@ -7,6 +7,7 @@ namespace ReactParallel\ObjectProxy;
 use parallel\Channel;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
+use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Notify;
 
 use function spl_object_hash;
@@ -61,6 +62,15 @@ abstract class AbstractGeneratedProxy
     {
         try {
             $this->out->send(new Destruct($this->hash, spl_object_hash($this)));
+        } catch (Channel\Error\Closed $closed) {
+            // @ignoreException
+        }
+    }
+
+    final public function notifyMainThreadAboutOurExistence(): void
+    {
+        try {
+            $this->out->send(new Existence($this->hash, spl_object_hash($this)));
         } catch (Channel\Error\Closed $closed) {
             // @ignoreException
         }

@@ -21,7 +21,6 @@
         "psr/log": "^1.1",
         "react-parallel/react-parallel": "^1.0",
         "rx/operator-extras": "^2.1",
-        "thecodingmachine/safe": "^1.2",
         "wyrihaximus/constants": "^1.5",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
         "wyrihaximus/metrics": "dev-master",
@@ -29,6 +28,7 @@
     },
     "require-dev": {
         "monolog/monolog": "^2.1",
+        "thecodingmachine/safe": "^1.3",
         "wyrihaximus/async-test-utilities": "^2.3",
         "yuloh/container": "^1.0"
     },
