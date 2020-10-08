@@ -92,10 +92,11 @@ final class Proxy extends ProxyList
             throw NonExistentInterface::create($interface);
         }
 
-        $class = self::KNOWN_INTERFACE[$interface];
-        $hash  = bin2hex(random_bytes(13));
+        $class    = self::KNOWN_INTERFACE[$interface];
+        $instance = new Instance($object, $interface);
+        $hash     = $instance->class() . '___' . bin2hex(random_bytes(13));
 
-        $this->instances[$hash] = new Instance($object, $interface);
+        $this->instances[$hash] = $instance;
 
         if ($this->counterCreate instanceof Counters) {
             $this->counterCreate->counter(new Label('class', $this->instances[$hash]->class()), new Label('interface', $interface))->incr();
