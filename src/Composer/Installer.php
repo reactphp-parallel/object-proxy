@@ -91,7 +91,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
 
         if (! function_exists('WyriHaximus\iteratorOrArrayToArray')) {
             /** @psalm-suppress UnresolvableInclude */
-                require_once $composer->getConfig()->get('vendor-dir') . '/wyrihaximus/iterator-or-array-to-array/src/functions_include.php';
+            require_once $composer->getConfig()->get('vendor-dir') . '/wyrihaximus/iterator-or-array-to-array/src/functions_include.php';
         }
 
         if (! function_exists('WyriHaximus\getIn')) {
@@ -127,7 +127,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $io->write('<info>react-parallel/object-proxy:</info> Locating interfaces');
 
         $installPath = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
-        $proxies     = self::getProxies($composer, $io, $rootPath);
+        $proxies     = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
 
         $io->write('<info>react-parallel/object-proxy:</info> Found ' . count($proxies) . ' interface(s) and generated a proxy for each of them');
 
@@ -177,7 +177,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
     /**
      * @return array<InterfaceProxier>
      */
-    private static function getProxies(Composer $composer, IOInterface $io, string $rootPath): array
+    private static function getProxies(Composer $composer, IOInterface $io, string $rootPath, RootPackageInterface $rootPackage): array
     {
         $phpParser = $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7, new Emulative(['comments' => true]));
 
@@ -192,7 +192,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
             static fn (array $interfaces): Observable => observableFromArray(array_unique(array_values($interfaces)))
         )->map(
             /** @phpstan-ignore-next-line */
-            static function (string $interface) use ($io, $phpParser, $rootPath): ?array {
+            static function (string $interface) use ($io, $phpParser, $rootPath, $rootPackage): ?array {
                 $io->write(sprintf('<info>react-parallel/object-proxy:</info> Creating proxy for %s', $interface));
 
                 /**
@@ -201,7 +201,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                  */
                 $fileName = (new ReflectionClass($interface))->getFileName();
                 if ($interface === LoggerInterface::class) {
-                    $fileName = $rootPath . '/vendor/psr/log/Psr/Log/LoggerInterface.php';
+                    $fileName = ($rootPackage->getName() === 'react-parallel/object-proxy' ? $rootPath : dirname($rootPath, 3)) . '/vendor/psr/log/Psr/Log/LoggerInterface.php';
                 }
 
                 /**
