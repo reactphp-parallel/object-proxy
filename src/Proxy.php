@@ -11,17 +11,21 @@ use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Notify;
+use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\Proxy\Instance;
+use Rx\Observable;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry;
 use WyriHaximus\Metrics\Registry\Counters;
 
+use function ApiClients\Tools\Rx\observableFromArray;
 use function array_key_exists;
 use function bin2hex;
 use function get_class;
 use function is_object;
 use function random_bytes;
 use function var_export;
+use function WyriHaximus\iteratorOrArrayToArray;
 
 final class Proxy extends ProxyList
 {
@@ -113,7 +117,7 @@ final class Proxy extends ProxyList
 
     private function setUpHandlers(): void
     {
-        $this->factory->streams()->channel($this->in)->subscribe(function (object $message): void {
+        $this->factory->streams()->channel($this->in)->flatMap(static fn (object $message): Observable => observableFromArray($message instanceof Parcel ? iteratorOrArrayToArray($message->messages()) : [$message]))->subscribe(function (object $message): void {
             if ($message instanceof Existence) {
                 $this->handleExistence($message);
 
