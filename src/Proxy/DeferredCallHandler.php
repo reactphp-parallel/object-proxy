@@ -17,7 +17,7 @@ final class DeferredCallHandler
 
     final public function __construct(Channel $out)
     {
-        $this->out  = $out;
+        $this->out    = $out;
         $this->parcel = new Parcel();
     }
 

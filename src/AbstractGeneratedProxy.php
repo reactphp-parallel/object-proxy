@@ -9,8 +9,8 @@ use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Notify;
-
 use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
+
 use function spl_object_hash;
 
 abstract class AbstractGeneratedProxy
@@ -22,8 +22,8 @@ abstract class AbstractGeneratedProxy
 
     final public function __construct(Channel $out, string $hash, bool $deferred)
     {
-        $this->out  = $out;
-        $this->hash = $hash;
+        $this->out      = $out;
+        $this->hash     = $hash;
         $this->deferred = $deferred;
     }
 
@@ -84,6 +84,7 @@ abstract class AbstractGeneratedProxy
         );
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->notify($notify);
+
             return;
         }
 
@@ -95,6 +96,7 @@ abstract class AbstractGeneratedProxy
         $destruct = new Destruct($this->hash, spl_object_hash($this));
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->destruct($destruct);
+
             return;
         }
 
@@ -111,6 +113,7 @@ abstract class AbstractGeneratedProxy
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->existence($existence);
             $this->deferredCallHandler->commit();
+
             return;
         }
 

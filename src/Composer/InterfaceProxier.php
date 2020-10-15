@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Composer;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Builder\Method;
 use PhpParser\Comment;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
+use ReactParallel\ObjectProxy\Attribute\Defer;
+use ReflectionMethod;
 
 use function array_key_exists;
 use function count;
@@ -83,6 +86,11 @@ final class InterfaceProxier
 
     private function inspectNode(Node\Stmt $node): Node\Stmt
     {
+        if ($node instanceof Node\Stmt\Interface_) {
+            $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $node->name . 'Proxy';
+            $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $node->name;
+        }
+
         if ($node instanceof Node\Stmt\Namespace_) {
             $node = $this->replaceNamespace($node);
         }
@@ -139,9 +147,6 @@ final class InterfaceProxier
 
     private function transformInterfaceIntoClass(Node\Stmt\Interface_ $interface): Node\Stmt\Class_
     {
-        $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $interface->name . 'Proxy';
-        $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $interface->name;
-
         $stmts   = $this->iterateStmts($interface->stmts);
         $stmts[] = (new Method('__destruct'))->addStmt(
             new Node\Stmt\Expression(
@@ -183,7 +188,7 @@ final class InterfaceProxier
 
         $methodBody = new Node\Expr\MethodCall(
             new Node\Expr\Variable('this'),
-            $this->isMethodVoid($method) ? 'proxyNotifyMainThread' : 'proxyCallToMainThread',
+            $this->isMethodVoid($method) ? 'proxyNotifyMainThread' : ($this->isDeferrable($method) ? 'deferCallToMainThread' : 'proxyCallToMainThread'),
             [
                 new Node\Arg(
                     new Node\Expr\ConstFetch(
@@ -229,5 +234,14 @@ final class InterfaceProxier
          * @psalm-suppress PossiblyNullReference
          */
         return $method->getDocComment() instanceof Comment && strpos($method->getDocComment()->getText(), '@return void') !== FALSE_;
+    }
+
+    private function isDeferrable(Node\Stmt\ClassMethod $method): bool
+    {
+        if (! ($method->getDocComment() instanceof Comment)) {
+            return false;
+        }
+
+        return (new AnnotationReader())->getMethodAnnotation(new ReflectionMethod($this->interfaceName . '::' . $method->name), Defer::class) instanceof Defer;
     }
 }
