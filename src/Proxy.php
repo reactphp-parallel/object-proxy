@@ -107,7 +107,7 @@ final class Proxy extends ProxyList
         }
 
         /** @psalm-suppress InvalidStringClass */
-        return new $class($this->in, $hash);
+        return new $class($this->in, $hash, false);
     }
 
     public function __destruct()
