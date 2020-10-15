@@ -10,6 +10,7 @@ use PhpParser\Comment;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
 use ReactParallel\ObjectProxy\Attribute\Defer;
+use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReflectionMethod;
 
 use function array_key_exists;
@@ -160,7 +161,7 @@ final class InterfaceProxier
         return new Node\Stmt\Class_(
             $this->className,
             [
-                'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
+                'extends' => new Node\Name(self::NAMESPACE_GLUE . ProxyList::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
                 'implements' => [
                     new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),

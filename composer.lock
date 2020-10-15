@@ -609,12 +609,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp-parallel/object-proxy-attributes.git",
-                "reference": "f8844d096ea611817f29c306096eebfd2680478a"
+                "reference": "3bbc5d9562fb099bda9233fa570a8936407e3b00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp-parallel/object-proxy-attributes/zipball/f8844d096ea611817f29c306096eebfd2680478a",
-                "reference": "f8844d096ea611817f29c306096eebfd2680478a",
+                "url": "https://api.github.com/repos/reactphp-parallel/object-proxy-attributes/zipball/3bbc5d9562fb099bda9233fa570a8936407e3b00",
+                "reference": "3bbc5d9562fb099bda9233fa570a8936407e3b00",
                 "shasum": ""
             },
             "require": {
@@ -641,7 +641,7 @@
                 }
             ],
             "description": "👨‍🚀🛰👩‍🚀 Attributes for react-parallel/object-proxy",
-            "time": "2020-10-13T18:55:00+00:00"
+            "time": "2020-10-15T20:31:07+00:00"
         },
         {
             "name": "react-parallel/react-parallel",
