@@ -21,6 +21,7 @@ use function property_exists;
 use function str_replace;
 use function strpos;
 
+use function WyriHaximus\iteratorOrArrayToArray;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 
 final class InterfaceProxier
@@ -161,7 +162,7 @@ final class InterfaceProxier
         return new Node\Stmt\Class_(
             $this->className,
             [
-                'extends' => new Node\Name(self::NAMESPACE_GLUE . ProxyList::class),
+                'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
                 'implements' => [
                     new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),
@@ -190,18 +191,7 @@ final class InterfaceProxier
         $methodBody = new Node\Expr\MethodCall(
             new Node\Expr\Variable('this'),
             $this->isMethodVoid($method) ? 'proxyNotifyMainThread' : ($this->isDeferrable($method) ? 'deferCallToMainThread' : 'proxyCallToMainThread'),
-            [
-                new Node\Arg(
-                    new Node\Expr\ConstFetch(
-                        new Node\Name('__FUNCTION__'),
-                    ),
-                ),
-                new Node\Arg(
-                    new Node\Expr\FuncCall(
-                        new Node\Name('\func_get_args'),
-                    ),
-                ),
-            ]
+            iterator_to_array($this->methodCallArguments($method))
         );
 
         $method->stmts = [
@@ -209,6 +199,27 @@ final class InterfaceProxier
         ];
 
         return $method;
+    }
+
+    private function methodCallArguments(Node\Stmt\ClassMethod $method): iterable
+    {
+        yield new Node\Arg(
+            new Node\Expr\ConstFetch(
+                new Node\Name('__FUNCTION__'),
+            ),
+        );
+        yield new Node\Arg(
+            new Node\Expr\FuncCall(
+                new Node\Name('\func_get_args'),
+            ),
+        );
+
+        if ($this->isDeferrable($method))
+        {
+            yield new Node\Arg(
+                new Node\Scalar\String_($this->interfaceName),
+            );
+        }
     }
 
     private function wrapMethodBody(Node\Stmt\ClassMethod $method, Node\Expr\MethodCall $methodBody): Node\Stmt

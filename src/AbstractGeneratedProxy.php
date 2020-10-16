@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
+use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
@@ -13,7 +14,7 @@ use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
 
 use function spl_object_hash;
 
-abstract class AbstractGeneratedProxy
+abstract class AbstractGeneratedProxy extends ProxyList
 {
     private Channel $out;
     private string $hash;
@@ -54,8 +55,13 @@ abstract class AbstractGeneratedProxy
      *
      * @return mixed|void
      */
-    final protected function deferCallToMainThread(string $method, array $args)
+    final protected function deferCallToMainThread(string $method, array $args, string $interface)
     {
+        // If we don't have a proxy for it, just make the call
+        if (!array_key_exists($interface, self::KNOWN_INTERFACE)) {
+            return $this->proxyCallToMainThread($method, $args);
+        }
+
         $input = new Channel(1);
         $call  = new Call(
             $input,

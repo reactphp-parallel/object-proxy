@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Proxy;
 
 use parallel\Channel;
+use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Notify;
@@ -19,6 +20,11 @@ final class DeferredCallHandler
     {
         $this->out    = $out;
         $this->parcel = new Parcel();
+    }
+
+    public function call(Call $call): void
+    {
+        $this->parcel->call($call);
     }
 
     public function existence(Existence $existence): void
