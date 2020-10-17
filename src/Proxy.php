@@ -95,6 +95,9 @@ final class Proxy extends ProxyList
             throw NonExistentInterface::create($interface);
         }
 
+        /**
+         * @psalm-suppress EmptyArrayAccess
+         */
         $class    = self::KNOWN_INTERFACE[$interface];
         $instance = new Instance($object, $interface);
         $hash     = $instance->class() . '___' . spl_object_hash($object);

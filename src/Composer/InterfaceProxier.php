@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Composer;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Builder\Method;
 use PhpParser\Comment;
 use PhpParser\Node;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
+use ReactParallel\ObjectProxy\Attribute\Defer;
+use ReflectionMethod;
+use Traversable;
 
 use function array_key_exists;
 use function count;
 use function implode;
 use function is_array;
+use function iterator_to_array;
 use function property_exists;
 use function str_replace;
 use function strpos;
@@ -83,6 +88,11 @@ final class InterfaceProxier
 
     private function inspectNode(Node\Stmt $node): Node\Stmt
     {
+        if ($node instanceof Node\Stmt\Interface_) {
+            $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $node->name . 'Proxy';
+            $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $node->name;
+        }
+
         if ($node instanceof Node\Stmt\Namespace_) {
             $node = $this->replaceNamespace($node);
         }
@@ -139,9 +149,6 @@ final class InterfaceProxier
 
     private function transformInterfaceIntoClass(Node\Stmt\Interface_ $interface): Node\Stmt\Class_
     {
-        $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $interface->name . 'Proxy';
-        $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $interface->name;
-
         $stmts   = $this->iterateStmts($interface->stmts);
         $stmts[] = (new Method('__destruct'))->addStmt(
             new Node\Stmt\Expression(
@@ -183,19 +190,8 @@ final class InterfaceProxier
 
         $methodBody = new Node\Expr\MethodCall(
             new Node\Expr\Variable('this'),
-            $this->isMethodVoid($method) ? 'proxyNotifyMainThread' : 'proxyCallToMainThread',
-            [
-                new Node\Arg(
-                    new Node\Expr\ConstFetch(
-                        new Node\Name('__FUNCTION__'),
-                    ),
-                ),
-                new Node\Arg(
-                    new Node\Expr\FuncCall(
-                        new Node\Name('\func_get_args'),
-                    ),
-                ),
-            ]
+            $this->isMethodVoid($method) ? ($this->isDeferrable($method) ? 'deferNotifyMainThread' : 'proxyNotifyMainThread') : 'proxyCallToMainThread',
+            iterator_to_array($this->methodCallArguments($method))
         );
 
         $method->stmts = [
@@ -203,6 +199,32 @@ final class InterfaceProxier
         ];
 
         return $method;
+    }
+
+    /**
+     * @return Traversable<Node\Arg>
+     */
+    private function methodCallArguments(Node\Stmt\ClassMethod $method): iterable
+    {
+        yield new Node\Arg(
+            new Node\Expr\ConstFetch(
+                new Node\Name('__FUNCTION__'),
+            ),
+        );
+
+        yield new Node\Arg(
+            new Node\Expr\FuncCall(
+                new Node\Name('\func_get_args'),
+            ),
+        );
+
+        if (! $this->isDeferrable($method)) {
+            return;
+        }
+
+        yield new Node\Arg(
+            new Node\Scalar\String_($this->interfaceName),
+        );
     }
 
     private function wrapMethodBody(Node\Stmt\ClassMethod $method, Node\Expr\MethodCall $methodBody): Node\Stmt
@@ -229,5 +251,14 @@ final class InterfaceProxier
          * @psalm-suppress PossiblyNullReference
          */
         return $method->getDocComment() instanceof Comment && strpos($method->getDocComment()->getText(), '@return void') !== FALSE_;
+    }
+
+    private function isDeferrable(Node\Stmt\ClassMethod $method): bool
+    {
+        if (! ($method->getDocComment() instanceof Comment)) {
+            return false;
+        }
+
+        return (new AnnotationReader())->getMethodAnnotation(new ReflectionMethod($this->interfaceName . '::' . $method->name), Defer::class) instanceof Defer;
     }
 }
