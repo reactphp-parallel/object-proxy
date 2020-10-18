@@ -190,7 +190,7 @@ final class InterfaceProxier
 
         $methodBody = new Node\Expr\MethodCall(
             new Node\Expr\Variable('this'),
-            $this->isMethodVoid($method) ? ($this->isDeferrable($method) ? 'deferNotifyMainThread' : 'proxyNotifyMainThread') : 'proxyCallToMainThread',
+            $this->isMethodVoid($method) ? ($this->isDeferrable($method) ? 'deferNotifyMainThread' : 'proxyNotifyMainThread') : ($this->isDeferrable($method) ? 'deferCallToMainThread' : 'proxyCallToMainThread'),
             iterator_to_array($this->methodCallArguments($method))
         );
 

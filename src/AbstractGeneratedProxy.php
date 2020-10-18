@@ -57,6 +57,35 @@ abstract class AbstractGeneratedProxy extends ProxyList
 
     /**
      * @param mixed[] $args
+     *
+     * @return mixed|void
+     */
+    final protected function deferCallToMainThread(string $method, array $args)
+    {
+        $input = new Channel(1);
+        $call  = new Call(
+            $input,
+            $this->hash,
+            spl_object_hash($this),
+            $method,
+            $args,
+        );
+
+        if ($this->deferredCallHandler instanceof DeferredCallHandler) {
+            $this->deferredCallHandler->call($call);
+            $this->deferredCallHandler->commit($this->out);
+        } else {
+            $this->out->send($call);
+        }
+
+        $result = $input->recv();
+        $input->close();
+
+        return $result;
+    }
+
+    /**
+     * @param mixed[] $args
      */
     final protected function proxyNotifyMainThread(string $method, array $args): void
     {
