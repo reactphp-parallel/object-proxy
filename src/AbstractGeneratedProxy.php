@@ -101,7 +101,6 @@ abstract class AbstractGeneratedProxy extends ProxyList
         $destruct = new Destruct($this->hash, spl_object_hash($this));
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->destruct($destruct);
-            $this->deferredCallHandler->commit($this->out);
 
             return;
         }
