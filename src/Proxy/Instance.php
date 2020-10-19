@@ -16,11 +16,14 @@ final class Instance
     /** @var array<string> */
     private array $references = [];
 
-    public function __construct(object $object, string $interface)
+    private bool $locked;
+
+    public function __construct(object $object, string $interface, bool $locked)
     {
         $this->object    = $object;
         $this->class     = get_class($object);
         $this->interface = $interface;
+        $this->locked    = $locked;
     }
 
     public function object(): object
@@ -48,5 +51,10 @@ final class Instance
         unset($this->references[$hash]);
 
         return count($this->references);
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
     }
 }

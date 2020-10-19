@@ -35,7 +35,7 @@
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct::109",
                 "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22",
                 "ReactParallel\\ObjectProxy\\Message\\Parcel::notify::27",
-                "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface::36"
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface::39"
             ]
         }
     }
