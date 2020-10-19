@@ -17,22 +17,22 @@
         "@default": true,
         "ArrayItemRemoval": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::122"
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::132"
             ]
         },
         "InstanceOf_": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::122"
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::132"
             ]
         },
         "MethodCallRemoval": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::__destruct::117"
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct::127"
             ]
         },
         "PublicVisibility": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::__destruct::109",
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct::119",
                 "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22",
                 "ReactParallel\\ObjectProxy\\Message\\Parcel::notify::27",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface::39"
