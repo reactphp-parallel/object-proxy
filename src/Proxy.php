@@ -41,6 +41,9 @@ final class Proxy extends ProxyList
     /** @var array<string, Instance> */
     private array $instances = [];
 
+    /** @var array<string, string> */
+    private array $shared = [];
+
     /** @var array<string, string|false> */
     private array $detectedClasses = [];
 
@@ -89,20 +92,27 @@ final class Proxy extends ProxyList
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
-    public function create(object $object, string $interface, bool $locked = false): object
+    public function create(object $object, string $interface, bool $share = false): object
     {
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
+        }
+
+        if (array_key_exists($interface, $this->shared)) {
+            return $this->instances[$this->shared[$interface]];
         }
 
         /**
          * @psalm-suppress EmptyArrayAccess
          */
         $class    = self::KNOWN_INTERFACE[$interface];
-        $instance = new Instance($object, $interface, $locked);
+        $instance = new Instance($object, $interface, $share);
         $hash     = $instance->class() . '___' . spl_object_hash($object);
 
         $this->instances[$hash] = $instance;
+        if ($share) {
+            $this->shared[$interface] = $hash;
+        }
 
         if ($this->counterCreate instanceof Counters) {
             $this->counterCreate->counter(new Label('class', $this->instances[$hash]->class()), new Label('interface', $interface))->incr();
