@@ -89,7 +89,7 @@ final class Proxy extends ProxyList
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
-    public function create(object $object, string $interface): object
+    public function create(object $object, string $interface, bool $locked = false): object
     {
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
@@ -99,7 +99,7 @@ final class Proxy extends ProxyList
          * @psalm-suppress EmptyArrayAccess
          */
         $class    = self::KNOWN_INTERFACE[$interface];
-        $instance = new Instance($object, $interface);
+        $instance = new Instance($object, $interface, $locked);
         $hash     = $instance->class() . '___' . spl_object_hash($object);
 
         $this->instances[$hash] = $instance;
@@ -212,10 +212,22 @@ final class Proxy extends ProxyList
 
         $instance = $this->instances[$destruct->hash()];
         $count    = $instance->dereference($destruct->objectHash());
-        if ($count === 0) {
-            unset($this->instances[$destruct->hash()]);
+
+        $this->countDestruct($instance);
+
+        if ($instance->isLocked()) {
+            return;
         }
 
+        if ($count !== 0) {
+            return;
+        }
+
+        unset($this->instances[$destruct->hash()]);
+    }
+
+    private function countDestruct(Instance $instance): void
+    {
         if (! ($this->counterDestruct instanceof Counters)) {
             return;
         }
