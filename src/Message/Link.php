@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Message;
 
-final class Notify
+final class Link
 {
     private string $hash;
     private string $objectHash;
@@ -31,6 +31,11 @@ final class Notify
     public function hash(): string
     {
         return $this->hash;
+    }
+
+    public function rootHash(): string
+    {
+        return $this->link instanceof Link ? $this->link->rootHash() : $this->hash;
     }
 
     public function objectHash(): string

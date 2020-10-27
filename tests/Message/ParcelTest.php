@@ -24,7 +24,7 @@ final class ParcelTest extends AsyncTestCase
     public function getters(): void
     {
         $destruct  = new Destruct(bin2hex(random_bytes(1024)), bin2hex(random_bytes(1024)));
-        $call      = new Call(new Channel(1), bin2hex(random_bytes(1024)), bin2hex(random_bytes(1024)), 'hammer', [time()]);
+        $call      = new Call(new Channel(1), bin2hex(random_bytes(1024)), bin2hex(random_bytes(1024)), 'hammer', [time()], null);
         $existence = new Existence(bin2hex(random_bytes(1024)), bin2hex(random_bytes(1024)));
 
         $parcel = new Parcel();

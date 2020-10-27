@@ -1,6 +1,16 @@
 parameters:
 	excludes_analyse:
 		- src/Generated/*
+	ignoreErrors:
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Call::__construct\(\) has parameter \$link with a nullable type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Call::link\(\) has a nullable return type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Call::link\(\) should return ReactParallel\\ObjectProxy\\Message\\Link\|null but returns object\|null.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Link::__construct\(\) has parameter \$link with a nullable type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Link::link\(\) has a nullable return type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Link::link\(\) should return ReactParallel\\ObjectProxy\\Message\\Link\|null but returns object\|null.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Notify::__construct\(\) has parameter \$link with a nullable type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Notify::link\(\) has a nullable return type declaration.#'
+		- '#Method ReactParallel\\ObjectProxy\\Message\\Notify::link\(\) should return ReactParallel\\ObjectProxy\\Message\\Link\|null but returns object\|null.#'
 	ergebnis:
 		classesAllowedToBeExtended:
 			- Exception

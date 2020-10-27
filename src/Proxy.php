@@ -10,6 +10,7 @@ use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
+use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\Proxy\Instance;
@@ -20,10 +21,16 @@ use WyriHaximus\Metrics\Registry\Counters;
 
 use function ApiClients\Tools\Rx\observableFromArray;
 use function array_key_exists;
+use function array_reverse;
+use function array_shift;
+use function assert;
 use function get_class;
 use function is_object;
 use function spl_object_hash;
 use function WyriHaximus\iteratorOrArrayToArray;
+
+use const WyriHaximus\Constants\Boolean\FALSE_;
+use const WyriHaximus\Constants\Numeric\ZERO;
 
 final class Proxy extends ProxyList
 {
@@ -92,7 +99,7 @@ final class Proxy extends ProxyList
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
-    public function create(object $object, string $interface, bool $share = false): object
+    public function create(object $object, string $interface, bool $share = FALSE_): object
     {
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
@@ -105,7 +112,7 @@ final class Proxy extends ProxyList
         /**
          * @psalm-suppress EmptyArrayAccess
          */
-        $class    = self::KNOWN_INTERFACE[$interface];
+        $class    = self::KNOWN_INTERFACE[$interface]['direct'];
         $instance = new Instance($object, $interface, $share);
         $hash     = $instance->class() . '___' . spl_object_hash($object);
 
@@ -170,12 +177,24 @@ final class Proxy extends ProxyList
 
     private function handleNotify(Notify $notify): void
     {
-        if (! array_key_exists($notify->hash(), $this->instances)) {
+        if (! array_key_exists($notify->hash(), $this->instances) && ($notify->link() === null || ! array_key_exists($notify->link()->rootHash(), $this->instances))) {
             return;
         }
 
-        $instance = $this->instances[$notify->hash()];
-        $instance->reference($notify->objectHash());
+        if ($notify->link() instanceof Link) {
+            $instance = $this->instances[$notify->link()->rootHash()];
+            $object   = $this->followChain($notify->link());
+
+            if ($object === null) {
+                return;
+            }
+
+            $instance = new Instance($object, $instance->interface(), false);
+        } else {
+            $instance = $this->instances[$notify->hash()];
+            $instance->reference($notify->objectHash());
+        }
+
         if ($this->counterNotify instanceof Counters) {
             $this->counterNotify->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
         }
@@ -186,12 +205,24 @@ final class Proxy extends ProxyList
 
     private function handleCall(Call $call): void
     {
-        if (! array_key_exists($call->hash(), $this->instances)) {
+        if (! array_key_exists($call->hash(), $this->instances) && ($call->link() === null || ! array_key_exists($call->link()->rootHash(), $this->instances))) {
             return;
         }
 
-        $instance = $this->instances[$call->hash()];
-        $instance->reference($call->objectHash());
+        if ($call->link() instanceof Link) {
+            $instance = $this->instances[$call->link()->rootHash()];
+            $object   = $this->followChain($call->link());
+
+            if ($object === null) {
+                return;
+            }
+
+            $instance = new Instance($object, $instance->interface(), FALSE_);
+        } else {
+            $instance = $this->instances[$call->hash()];
+            $instance->reference($call->objectHash());
+        }
+
         if ($this->counterCall instanceof Counters) {
             $this->counterCall->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
         }
@@ -229,7 +260,7 @@ final class Proxy extends ProxyList
             return;
         }
 
-        if ($count !== 0) {
+        if ($count !== ZERO) {
             return;
         }
 
@@ -255,5 +286,34 @@ final class Proxy extends ProxyList
         }
 
         return null;
+    }
+
+    /** @phpstan-ignore-next-line */
+    private function followChain(Link $link): ?object
+    {
+        $chain = [];
+        do {
+            $chain[] = $link;
+            $link    = $link->link();
+        } while ($link instanceof Link);
+
+        $chain = array_reverse($chain);
+        $link  = array_shift($chain);
+        /** @psalm-suppress RedundantCondition */
+        assert($link instanceof Link);
+
+        if (! array_key_exists($link->hash(), $this->instances)) {
+            return null;
+        }
+
+        /** @phpstan-ignore-next-line */
+        $result = $this->instances[$link->hash()]->object()->{$link->method()}(...$link->args());
+        /** @phpstan-ignore-next-line */
+        foreach ($chain as $link) {
+            /** @phpstan-ignore-next-line */
+            $result = $result->{$link->method()}(...$link->args());
+        }
+
+        return $result;
     }
 }

@@ -17,25 +17,49 @@
         "@default": true,
         "ArrayItemRemoval": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::132"
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers"
+            ]
+        },
+        "Identical": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::handleCall",
+                "ReactParallel\\ObjectProxy\\Proxy::handleNotify"
             ]
         },
         "InstanceOf_": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers::132"
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers",
+                "ReactParallel\\ObjectProxy\\Proxy::countDestruct"
+            ]
+        },
+        "LogicalNot": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct"
             ]
         },
         "MethodCallRemoval": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::__destruct::127"
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct",
+                "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers"
+            ]
+        },
+        "NotIdentical": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct"
             ]
         },
         "PublicVisibility": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::__destruct::119",
-                "ReactParallel\\ObjectProxy\\NonExistentInterface::interface::22",
-                "ReactParallel\\ObjectProxy\\Message\\Parcel::notify::27",
-                "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface::39"
+                "ReactParallel\\ObjectProxy\\Proxy::__destruct",
+                "ReactParallel\\ObjectProxy\\NonExistentInterface::interface",
+                "ReactParallel\\ObjectProxy\\Message\\Link::objectHash",
+                "ReactParallel\\ObjectProxy\\Message\\Parcel::notify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface",
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::dereference",
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked"
             ]
         }
     }

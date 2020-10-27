@@ -26,8 +26,8 @@ final class DeferredCallHandlerTest extends AsyncTestCase
         $channel   = new Channel(1);
         $dch       = new DeferredCallHandler();
         $existence = new Existence('hash', 'objectHash');
-        $call      = new Call(new Channel(1), 'hash', 'objectHash', 'method', []);
-        $notify    = new Notify('hash', 'objectHash', 'method', []);
+        $call      = new Call(new Channel(1), 'hash', 'objectHash', 'method', [], null);
+        $notify    = new Notify('hash', 'objectHash', 'method', [], null);
         $destruct  = new Destruct('hash', 'objectHash');
         $dch->destruct($destruct);
         $dch->existence($existence);
