@@ -13,15 +13,14 @@ use Composer\Package\RootPackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Illuminate\Support\Collection;
 use PhpParser\Lexer\Emulative;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use Rx\Observable;
 use Throwable;
 
-use function ApiClients\Tools\Rx\observableFromArray;
 use function array_unique;
 use function array_values;
 use function count;
@@ -181,44 +180,42 @@ final class Installer implements PluginInterface, EventSubscriberInterface
     {
         $phpParser = $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7, new Emulative(['comments' => true]));
 
-        $result     = [];
         $packages   = $composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
         $packages[] = $composer->getPackage();
-        observableFromArray($packages)->filter(
-            static fn (PackageInterface $package): bool => (bool) count($package->getAutoload())
-        )->flatMap(
-            static fn (PackageInterface $package): Observable => observableFromArray(getIn($package->getExtra(), 'react-parallel.object-proxy.interfaces-to-proxy', []))
-        )->toArray()->flatMap(
-            static fn (array $interfaces): Observable => observableFromArray(array_unique(array_values($interfaces)))
-        )->map(
-            /** @phpstan-ignore-next-line */
-            static function (string $interface) use ($io, $phpParser, $rootPath, $rootPackage): ?array {
-                $io->write(sprintf('<info>react-parallel/object-proxy:</info> Creating proxy for %s', $interface));
 
-                /**
-                 * @psalm-suppress ArgumentTypeCoercion
-                 * @phpstan-ignore-next-line
-                 */
-                $fileName = (new ReflectionClass($interface))->getFileName();
-                if ($interface === LoggerInterface::class) {
-                    $fileName = ($rootPackage->getName() === 'react-parallel/object-proxy' ? $rootPath : dirname($rootPath, 3)) . '/vendor/psr/log/Psr/Log/LoggerInterface.php';
+        try {
+            return (new Collection(array_unique(array_values((new Collection($packages))->filter(
+                static fn (PackageInterface $package): bool => (bool) count($package->getAutoload())
+            )->flatMap(
+                static fn (PackageInterface $package): array => getIn($package->getExtra(), 'react-parallel.object-proxy.interfaces-to-proxy', [])
+            )->all()))))->map(
+                /** @phpstan-ignore-next-line */
+                static function (string $interface) use ($io, $phpParser, $rootPath, $rootPackage): ?array {
+                    $io->write(sprintf('<info>react-parallel/object-proxy:</info> Creating proxy for %s', $interface));
+
+                    /**
+                     * @psalm-suppress ArgumentTypeCoercion
+                     * @phpstan-ignore-next-line
+                     */
+                    $fileName = (new ReflectionClass($interface))->getFileName();
+                    if ($interface === LoggerInterface::class) {
+                        $fileName = ($rootPackage->getName() === 'react-parallel/object-proxy' ? $rootPath : dirname($rootPath, 3)) . '/vendor/psr/log/Psr/Log/LoggerInterface.php';
+                    }
+
+                    /**
+                     * @phpstan-ignore-next-line
+                     */
+                    return $phpParser->parse(file_get_contents($fileName));
                 }
-
-                /**
-                 * @phpstan-ignore-next-line
-                 */
-                return $phpParser->parse(file_get_contents($fileName));
-            }
-        )->filter(
-            static fn (?array $ast): bool => is_array($ast)
-        )->map(
-            static fn (array $ast): InterfaceProxier => new InterfaceProxier($ast)
-        )->toArray()->toPromise()->then(static function (array $interfaces) use (&$result): void {
-            $result = $interfaces;
-        }, static function (Throwable $throwable) use ($io): void {
+            )->filter(
+                static fn (?array $ast): bool => is_array($ast)
+            )->map(
+                static fn (array $ast): InterfaceProxier => new InterfaceProxier($ast)
+            )->all();
+        } catch (Throwable $throwable) { /** @phpstan-ignore-line */
             $io->write(sprintf('<info>react-parallel/object-proxy:</info> Unexpected error: <fg=red>%s</>', $throwable->getMessage()));
-        });
 
-        return $result;
+            return [];
+        }
     }
 }
