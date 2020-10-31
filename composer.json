@@ -21,7 +21,7 @@
         "nikic/php-parser": "^4.9",
         "psr/container": "^1.0",
         "psr/log": "^1.1",
-        "react-parallel/object-proxy-attributes": "dev-main",
+        "react-parallel/object-proxy-attributes": "^1",
         "react-parallel/react-parallel": "^1.0",
         "rx/operator-extras": "^2.1",
         "wyrihaximus/constants": "^1.5",
