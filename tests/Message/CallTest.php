@@ -25,7 +25,7 @@ final class CallTest extends AsyncTestCase
         $method     = 'hammer';
         $args       = [time()];
 
-        $call = new Call($channel, $hash, $objectHash, $method, $args);
+        $call = new Call($channel, $hash, $objectHash, $method, $args, null);
 
         self::assertSame($channel, $call->channel());
         self::assertSame($hash, $call->hash());

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Composer;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use PhpParser\Builder\Method;
 use PhpParser\Comment;
 use PhpParser\Node;
-use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
+use ReactParallel\ObjectProxy\AbstractGeneratedDeferredProxy;
 use ReactParallel\ObjectProxy\Attribute\Defer;
 use ReflectionMethod;
 use Traversable;
@@ -24,7 +23,7 @@ use function strpos;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
 
-final class InterfaceProxier
+final class DeferredInterfaceProxier
 {
     public const GENERATED_NAMESPACE = [
         'ReactParallel',
@@ -89,7 +88,7 @@ final class InterfaceProxier
     private function inspectNode(Node\Stmt $node): Node\Stmt
     {
         if ($node instanceof Node\Stmt\Interface_) {
-            $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $node->name . 'Proxy';
+            $this->className     = 'Deferred' . str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $node->name . 'Proxy';
             $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $node->name;
         }
 
@@ -149,20 +148,12 @@ final class InterfaceProxier
 
     private function transformInterfaceIntoClass(Node\Stmt\Interface_ $interface): Node\Stmt\Class_
     {
-        $stmts   = $this->iterateStmts($interface->stmts);
-        $stmts[] = (new Method('__destruct'))->addStmt(
-            new Node\Stmt\Expression(
-                new Node\Expr\MethodCall(
-                    new Node\Expr\Variable('this'),
-                    'notifyMainThreadAboutDestruction',
-                )
-            ),
-        )->makePublic()->makeFinal()->getNode();
+        $stmts = $this->iterateStmts($interface->stmts);
 
         return new Node\Stmt\Class_(
             $this->className,
             [
-                'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
+                'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedDeferredProxy::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
                 'implements' => [
                     new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),

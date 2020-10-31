@@ -18,16 +18,19 @@ final class Call
     /** @var mixed[] */
     private array $args;
 
+    private ?object $link;
+
     /**
      * @param mixed[] $args
      */
-    public function __construct(Channel $channel, string $hash, string $objectHash, string $method, array $args)
+    public function __construct(Channel $channel, string $hash, string $objectHash, string $method, array $args, ?Link $link)
     {
         $this->channel    = $channel;
         $this->hash       = $hash;
         $this->objectHash = $objectHash;
         $this->method     = $method;
         $this->args       = $args;
+        $this->link       = $link;
     }
 
     public function channel(): Channel
@@ -56,5 +59,18 @@ final class Call
     public function args(): array
     {
         return $this->args;
+    }
+
+    /**
+     * @psalm-suppress MoreSpecificReturnType
+     */
+    public function link(): ?Link
+    {
+        /**
+         * Have to do this because ext-parallel blows if we set the use Link as typed property
+         *
+         * @psalm-suppress LessSpecificReturnStatement
+         */
+        return $this->link;
     }
 }

@@ -9,9 +9,13 @@ use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
+use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
 
+use function array_key_exists;
+use function bin2hex;
+use function random_bytes;
 use function spl_object_hash;
 
 abstract class AbstractGeneratedProxy extends ProxyList
@@ -40,6 +44,7 @@ abstract class AbstractGeneratedProxy extends ProxyList
             spl_object_hash($this),
             $method,
             $args,
+            null,
         );
 
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
@@ -57,6 +62,34 @@ abstract class AbstractGeneratedProxy extends ProxyList
 
     /**
      * @param mixed[] $args
+     *
+     * @return mixed|void
+     */
+    final protected function createDeferredProxy(string $method, array $args, string $interface)
+    {
+        if (! array_key_exists($interface, self::KNOWN_INTERFACE) || ! ($this->deferredCallHandler instanceof DeferredCallHandler)) {
+            return $this->proxyCallToMainThread($method, $args);
+        }
+
+        $class = self::KNOWN_INTERFACE[$interface]['deferred'];
+
+        /** @psalm-suppress InvalidStringClass */
+        return new $class(
+            $this->out,
+            $this->deferredCallHandler,
+            static::class . '___' . bin2hex(random_bytes(13)),
+            new Link(
+                $this->hash,
+                spl_object_hash($this),
+                $method,
+                $args,
+                null,
+            )
+        );
+    }
+
+    /**
+     * @param mixed[] $args
      */
     final protected function proxyNotifyMainThread(string $method, array $args): void
     {
@@ -65,6 +98,7 @@ abstract class AbstractGeneratedProxy extends ProxyList
             spl_object_hash($this),
             $method,
             $args,
+            null,
         );
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->notify($notify);
@@ -86,6 +120,7 @@ abstract class AbstractGeneratedProxy extends ProxyList
             spl_object_hash($this),
             $method,
             $args,
+            null,
         );
         if ($this->deferredCallHandler instanceof DeferredCallHandler) {
             $this->deferredCallHandler->notify($notify);

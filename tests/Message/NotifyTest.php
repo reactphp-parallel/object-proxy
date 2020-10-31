@@ -23,7 +23,7 @@ final class NotifyTest extends AsyncTestCase
         $method     = 'hammer';
         $args       = [time()];
 
-        $call = new Notify($hash, $objectHash, $method, $args);
+        $call = new Notify($hash, $objectHash, $method, $args, null);
 
         self::assertSame($hash, $call->hash());
         self::assertSame($objectHash, $call->objectHash());
