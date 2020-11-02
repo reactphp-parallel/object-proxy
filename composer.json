@@ -52,9 +52,11 @@
                     "WyriHaximus\\Metrics\\Registry\\Counters",
                     "WyriHaximus\\Metrics\\Registry\\Gauges",
                     "WyriHaximus\\Metrics\\Registry\\Histograms",
+                    "WyriHaximus\\Metrics\\Registry\\Summaries",
                     "WyriHaximus\\Metrics\\Counter",
                     "WyriHaximus\\Metrics\\Gauge",
-                    "WyriHaximus\\Metrics\\Histogram"
+                    "WyriHaximus\\Metrics\\Histogram",
+                    "WyriHaximus\\Metrics\\Summary"
                 ]
             }
         }
