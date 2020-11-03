@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\Tests\ObjectProxy;
 
+use Lcobucci\Clock\FrozenClock;
 use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -116,7 +117,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry();
+        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(1);
         $registryProxy = $proxy->create($registry, Registry::class, true);
@@ -172,7 +173,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry();
+        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class);
@@ -217,7 +218,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry();
+        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class, true);
