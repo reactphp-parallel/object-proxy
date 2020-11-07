@@ -106,7 +106,15 @@ final class Proxy extends ProxyList
         }
 
         if (array_key_exists($interface, $this->shared)) {
-            return $this->instances[$this->shared[$interface]];
+            /**
+             * @psalm-suppress EmptyArrayAccess
+             */
+            $class    = self::KNOWN_INTERFACE[$interface]['direct'];
+            $instance = $this->instances[$this->shared[$interface]];
+            $hash     = $instance->class() . '___' . spl_object_hash($object);
+
+            /** @psalm-suppress InvalidStringClass */
+            return new $class($this->in, $hash);
         }
 
         /**
