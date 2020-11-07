@@ -30,6 +30,9 @@ use function React\Promise\all;
 use function Safe\sleep;
 use function time;
 
+use const WyriHaximus\Constants\Boolean\FALSE_;
+use const WyriHaximus\Constants\Boolean\TRUE_;
+
 final class ProxyTest extends AsyncTestCase
 {
     /**
@@ -253,5 +256,28 @@ final class ProxyTest extends AsyncTestCase
             133
         );
         self::assertSame(1337, $leet);
+    }
+
+    /**
+     * @test
+     * @dataProvider provideBooleans
+     */
+    public function sharedWillAlwaysReturnTheSameProxy(bool $share): void
+    {
+        $loop     = EventLoopFactory::create();
+        $factory  = new Factory($loop);
+        $registry = new InMemmoryRegistry(FrozenClock::fromUTC());
+        $proxy    = new Proxy($factory);
+        self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
+        self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
+    }
+
+    /**
+     * @return iterable<array<bool>>
+     */
+    public function provideBooleans(): iterable
+    {
+        yield 'true' => [TRUE_];
+        yield 'false' => [FALSE_];
     }
 }
