@@ -42,7 +42,7 @@
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",
                 "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
-                "ReactParallel\\ObjectProxy\\Proxy::handleNotifyF",
+                "ReactParallel\\ObjectProxy\\Proxy::handleNotify",
                 "ReactParallel\\ObjectProxy\\Proxy::handleDestruct",
                 "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers"
             ]
