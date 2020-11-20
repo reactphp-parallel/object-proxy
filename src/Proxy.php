@@ -54,9 +54,9 @@ final class Proxy extends ProxyList
     /** @var array<string, string|false> */
     private array $detectedClasses = [];
 
-    public function __construct(Factory $factory)
+    public function __construct(Configuration $configuration)
     {
-        $this->factory = $factory;
+        $this->factory = $configuration->factory();
         $this->in      = new Channel(Channel::Infinite);
         $this->setUpHandlers();
     }

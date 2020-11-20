@@ -13,12 +13,13 @@ use React\Promise\Promise;
 use React\Promise\PromiseInterface;
 use React\Promise\Timer\TimeoutException;
 use ReactParallel\Factory;
+use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Generated\WyriHaximus__Metrics_RegistryProxy;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\ObjectProxy\Proxy;
 use stdClass;
 use WyriHaximus\AsyncTestUtilities\AsyncTestCase;
-use WyriHaximus\Metrics\Configuration;
+use WyriHaximus\Metrics\Configuration as MetricsConfiguration;
 use WyriHaximus\Metrics\InMemory\Registry as InMemmoryRegistry;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Printer\Prometheus;
@@ -43,7 +44,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop        = EventLoopFactory::create();
         $factory     = new Factory($loop);
-        $proxy       = new Proxy($factory);
+        $proxy       = new Proxy(new Configuration($factory));
         $loggerStub  = new LoggerStub();
         $logger      = new Logger(
             'stub',
@@ -74,7 +75,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop       = EventLoopFactory::create();
         $factory    = new Factory($loop);
-        $proxy      = new Proxy($factory);
+        $proxy      = new Proxy(new Configuration($factory));
         $loggerStub = new LoggerStub();
         $logger     = new Logger(
             'stub',
@@ -111,7 +112,7 @@ final class ProxyTest extends AsyncTestCase
     {
         self::expectException(NonExistentInterface::class);
 
-        (new Proxy(new Factory(EventLoopFactory::create())))->create(new stdClass(), 'NoordHollandsKanaal');
+        (new Proxy(new Configuration(new Factory(EventLoopFactory::create()))))->create(new stdClass(), 'NoordHollandsKanaal');
     }
 
     /**
@@ -121,8 +122,8 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
-        $proxy         = (new Proxy($factory))->withMetrics($registry);
+        $registry      = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
+        $proxy         = (new Proxy(new Configuration($factory)))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(1);
         $registryProxy = $proxy->create($registry, Registry::class, true);
         $fn            = static function (int $int, WyriHaximus__Metrics_RegistryProxy $registryProxy): int {
@@ -177,8 +178,8 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
-        $proxy         = (new Proxy($factory))->withMetrics($registry);
+        $registry      = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
+        $proxy         = (new Proxy(new Configuration($factory)))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class);
         $fn            = static function (int $int, WyriHaximus__Metrics_RegistryProxy $registryProxy, int $sleep): int {
@@ -222,8 +223,8 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
-        $proxy         = (new Proxy($factory))->withMetrics($registry);
+        $registry      = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
+        $proxy         = (new Proxy(new Configuration($factory)))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class, true);
         $fn            = static function (int $int, WyriHaximus__Metrics_RegistryProxy $registryProxy, int $sleep): int {
@@ -267,8 +268,8 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop     = EventLoopFactory::create();
         $factory  = new Factory($loop);
-        $registry = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
-        $proxy    = new Proxy($factory);
+        $registry = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
+        $proxy    = new Proxy(new Configuration($factory));
         self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
         self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
     }
