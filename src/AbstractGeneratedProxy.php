@@ -71,6 +71,7 @@ abstract class AbstractGeneratedProxy extends ProxyList
             return $this->proxyCallToMainThread($method, $args);
         }
 
+        /** @psalm-suppress EmptyArrayAccess */
         $class = self::KNOWN_INTERFACE[$interface]['deferred'];
 
         /** @psalm-suppress InvalidStringClass */
