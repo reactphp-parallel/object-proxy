@@ -18,6 +18,7 @@ use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\ObjectProxy\Proxy;
 use stdClass;
 use WyriHaximus\AsyncTestUtilities\AsyncTestCase;
+use WyriHaximus\Metrics\Configuration;
 use WyriHaximus\Metrics\InMemory\Registry as InMemmoryRegistry;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Printer\Prometheus;
@@ -120,7 +121,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
+        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(1);
         $registryProxy = $proxy->create($registry, Registry::class, true);
@@ -158,15 +159,15 @@ final class ProxyTest extends AsyncTestCase
 
         $txt = $registry->print(new Prometheus());
         self::assertStringContainsString('counter_total{name="value"} 128', $txt);
-        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 1', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 128', $txt);
-        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry\Counters",interface="WyriHaximus\Metrics\Registry\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Counter",interface="WyriHaximus\Metrics\Counter"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\Metrics\InMemory\Registry",interface="WyriHaximus\Metrics\Registry"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 1', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 128', $txt);
     }
 
     /**
@@ -176,7 +177,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
+        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class);
@@ -221,7 +222,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop          = EventLoopFactory::create();
         $factory       = new Factory($loop);
-        $registry      = new InMemmoryRegistry(FrozenClock::fromUTC());
+        $registry      = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
         $proxy         = (new Proxy($factory))->withMetrics($registry);
         $limitedPool   = $factory->limitedPool(13);
         $registryProxy = $proxy->create($registry, Registry::class, true);
@@ -266,7 +267,7 @@ final class ProxyTest extends AsyncTestCase
     {
         $loop     = EventLoopFactory::create();
         $factory  = new Factory($loop);
-        $registry = new InMemmoryRegistry(FrozenClock::fromUTC());
+        $registry = new InMemmoryRegistry(Configuration::create()->withClock(FrozenClock::fromUTC()));
         $proxy    = new Proxy($factory);
         self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
         self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
