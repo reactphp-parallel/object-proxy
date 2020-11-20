@@ -6,6 +6,7 @@ namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
 use ReactParallel\Factory;
+use ReactParallel\ObjectProxy\Configuration\Metrics;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
@@ -16,7 +17,6 @@ use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\Proxy\Instance;
 use Rx\Observable;
 use WyriHaximus\Metrics\Label;
-use WyriHaximus\Metrics\Registry;
 use WyriHaximus\Metrics\Registry\Counters;
 
 use function ApiClients\Tools\Rx\observableFromArray;
@@ -57,41 +57,16 @@ final class Proxy extends ProxyList
     public function __construct(Configuration $configuration)
     {
         $this->factory = $configuration->factory();
-        $this->in      = new Channel(Channel::Infinite);
+        $metrics       = $configuration->metrics();
+        if ($metrics instanceof Metrics) {
+            $this->counterCreate   = $metrics->createCounter();
+            $this->counterCall     = $metrics->callCounter();
+            $this->counterNotify   = $metrics->notifyCounter();
+            $this->counterDestruct = $metrics->destructCounter();
+        }
+
+        $this->in = new Channel(Channel::Infinite);
         $this->setUpHandlers();
-    }
-
-    public function withMetrics(Registry $registry): self
-    {
-        $self                  = clone $this;
-        $self->counterCreate   = $registry->counter(
-            'react_parallel_object_proxy_create',
-            'Number of create proxies by the object proxy',
-            new Label\Name('class'),
-            new Label\Name('interface'),
-        );
-        $self->counterCall     = $registry->counter(
-            'react_parallel_object_proxy_call',
-            'The number of calls from worker threads through proxies to the main thread',
-            new Label\Name('class'),
-            new Label\Name('interface'),
-        );
-        $self->counterNotify   = $registry->counter(
-            'react_parallel_object_proxy_notify',
-            'The number of notifications from worker threads through proxies to the main thread',
-            new Label\Name('class'),
-            new Label\Name('interface'),
-        );
-        $self->counterDestruct = $registry->counter(
-            'react_parallel_object_proxy_destruct',
-            'Number of destroyed proxies by the garbage collector',
-            new Label\Name('class'),
-            new Label\Name('interface'),
-        );
-        $self->in              = new Channel(Channel::Infinite);
-        $self->setUpHandlers();
-
-        return $self;
     }
 
     public function has(string $interface): bool
