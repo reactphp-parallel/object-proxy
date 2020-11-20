@@ -185,14 +185,16 @@ final class ProxyTest extends AsyncTestCase
         $txt = $registry->print(new Prometheus());
         self::assertStringContainsString('counter_total{name="value"} 128', $txt);
         self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 1', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+
+        self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
+
         self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
-//        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
+        self::assertStringContainsString('react_parallel_object_proxy_destruct_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 128', $txt);
     }
 
     /**

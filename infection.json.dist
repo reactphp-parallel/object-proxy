@@ -29,6 +29,7 @@
         },
         "Continue_": {
             "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::followChain",
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
             ]
         },
@@ -55,7 +56,8 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
-                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countHandledChain"
             ]
         },
         "LogicalNot": {
