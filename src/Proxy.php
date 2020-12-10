@@ -5,18 +5,29 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
+use React\EventLoop\StreamSelectLoop;
+use ReactParallel\EventLoop\EventLoopBridge;
 use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Proxy\Handler;
+use ReactParallel\ObjectProxy\Proxy\Instance;
 use ReactParallel\ObjectProxy\Proxy\Registry;
+use ReactParallel\Streams\Factory as StreamsFactory;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
 
 use function array_key_exists;
+use function bin2hex;
+use function random_bytes;
+use function serialize;
+use function unserialize;
+
+use const WyriHaximus\Constants\Boolean\TRUE_;
 
 final class Proxy extends ProxyList
 {
+    private const RANDOM_BYTES_LENGTH       = 13;
     private const HASNT_PROXYABLE_INTERFACE = false;
 
     private Factory $factory;
@@ -76,6 +87,42 @@ final class Proxy extends ProxyList
         if ($this->counterCreate instanceof Counters) {
             $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
         }
+
+        /** @psalm-suppress InvalidStringClass */
+        return $instance->create();
+    }
+
+    public function thread(object $object, string $interface): object
+    {
+        if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
+            throw NonExistentInterface::create($interface);
+        }
+
+        /**
+         * @psalm-suppress EmptyArrayAccess
+         */
+        $in       = new Channel(Channel::Infinite);
+        $destruct = new Channel(Channel::Infinite);
+        $instance = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
+
+        $this->factory->call(
+            static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct): void {
+                $object        = unserialize($object);
+                $instance      = new Instance($object, $interface, TRUE_, $in, $hash);
+                $eventLoop     = new StreamSelectLoop();
+                $streamFactory = new StreamsFactory(new EventLoopBridge($eventLoop));
+                $registry      = new Registry($in, $instance);
+                new Handler($in, $eventLoop, $streamFactory, $registry);
+
+                $stop = static function () use ($eventLoop): void {
+                    $eventLoop->stop();
+                };
+                $streamFactory->channel($destruct)->subscribe($stop, $stop, $stop);
+
+                $eventLoop->run();
+            },
+            [serialize($object), $interface, $instance->hash(), $in, $destruct]
+        );
 
         /** @psalm-suppress InvalidStringClass */
         return $instance->create();

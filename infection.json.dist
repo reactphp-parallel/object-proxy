@@ -17,11 +17,13 @@
         "@default": true,
         "ArrayItemRemoval": {
             "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::thread",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers"
             ]
         },
         "Coalesce": {
             "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::__construct",
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
             ]
         },
@@ -70,9 +72,12 @@
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",
                 "ReactParallel\\ObjectProxy\\Proxy::create",
+                "ReactParallel\\ObjectProxy\\Proxy::thread",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::__destruct",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleExistence",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers"
