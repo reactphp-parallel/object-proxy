@@ -6,6 +6,7 @@ use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory;
 use ReactParallel\Factory as ParallelFactory;
+use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Proxy;
 use ReactParallel\Pool\Worker\Workers\ReturnWorkerFactory;
 use ReactParallel\Pool\Worker\Workers\Work;
@@ -14,7 +15,7 @@ require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
 
 $loop = Factory::create();
 $parallelFactory = new ParallelFactory($loop);
-$proxy = new Proxy($parallelFactory);
+$proxy = new Proxy(new Configuration($parallelFactory));
 $logger = new Logger('logger');
 $logger->pushHandler(new StreamHandler(STDOUT));
 $loggerProxy = $proxy->create($logger, LoggerInterface::class);

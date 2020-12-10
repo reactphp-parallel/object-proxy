@@ -2,8 +2,10 @@
 
 use React\EventLoop\Factory;
 use ReactParallel\Factory as ParallelFactory;
+use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Generated\WyriHaximus__Metrics_RegistryProxy;
 use ReactParallel\ObjectProxy\Proxy;
+use WyriHaximus\Metrics\Configuration as MetricsConfiguration;
 use WyriHaximus\Metrics\InMemory\Registry as InMemoryRegistry;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Printer\Prometheus;
@@ -15,8 +17,8 @@ require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
 $loop = Factory::create();
 $parallelFactory = new ParallelFactory($loop);
 $pool = $parallelFactory->limitedPool(1);
-$proxy = new Proxy($parallelFactory);
-$registry = new InMemoryRegistry();
+$proxy = new Proxy(new Configuration($parallelFactory));
+$registry = new InMemoryRegistry(MetricsConfiguration::create());
 $registryProxy = $proxy->create($registry, Registry::class, true);
 $fun = static function (WyriHaximus__Metrics_RegistryProxy $registry): int {
     $registry->setDeferredCallHandler(new Proxy\DeferredCallHandler());
