@@ -17,41 +17,55 @@
         "@default": true,
         "ArrayItemRemoval": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers"
+            ]
+        },
+        "Continue_": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
+            ]
+        },
+        "CloneRemoval": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Configuration::withMetrics"
             ]
         },
         "Identical": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::handleCall",
-                "ReactParallel\\ObjectProxy\\Proxy::handleNotify"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify"
             ]
         },
         "InstanceOf_": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers",
-                "ReactParallel\\ObjectProxy\\Proxy::handleNotify",
-                "ReactParallel\\ObjectProxy\\Proxy::countDestruct"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct"
             ]
         },
         "LogicalNot": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::handleExistence",
-                "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
-                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleExistence",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
             ]
         },
         "MethodCallRemoval": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",
-                "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
-                "ReactParallel\\ObjectProxy\\Proxy::handleNotify",
-                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct",
-                "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::__destruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers"
             ]
         },
         "NotIdentical": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy::handleDestruct"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct"
             ]
         },
         "PublicVisibility": {
@@ -64,6 +78,11 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::dereference",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked",
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::dropByHash"
+            ]
+        },
+        "Throw_": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::create"
             ]
         }
     }

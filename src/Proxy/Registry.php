@@ -22,9 +22,17 @@ final class Registry extends ProxyList
     /** @var array<string, string> */
     private array $shared = [];
 
-    public function __construct(Channel $in)
+    public function __construct(Channel $in, Instance ...$instances)
     {
         $this->in = $in;
+        foreach ($instances as $instance) {
+            $this->instances[$instance->hash()] = $instance;
+            if (! $instance->isLocked()) {
+                continue;
+            }
+
+            $this->shared[$instance->interface()] = $instance->hash();
+        }
     }
 
     public function hasByInterface(string $interface): bool

@@ -18,7 +18,8 @@ $loop = Factory::create();
 $parallelFactory = new ParallelFactory($loop);
 $pool = $parallelFactory->limitedPool(1);
 $proxy = new Proxy(new Configuration($parallelFactory));
-$registryProxy = $proxy->threadIt(new InMemoryRegistry(MetricsConfiguration::create()), Registry::class, true);
+/** @var Registry $registryProxy */
+$registryProxy = $proxy->threadIt(new InMemoryRegistry(MetricsConfiguration::create()), Registry::class);
 $fun = static function (WyriHaximus__Metrics_RegistryProxy $registry): int {
     $registry->setDeferredCallHandler(new Proxy\DeferredCallHandler());
     for ($i = 0; $i < 10; $i++) {
@@ -32,9 +33,10 @@ $promises = [];
 foreach (range(0, 1337) as $i) {
     $promises[] = $pool->run($fun, [$registryProxy]);
 }
-all($promises)->always(static function() use ($parallelFactory, $registryProxy): void {
+all($promises)->always(static function() use ($parallelFactory, $registryProxy, $proxy): void {
     echo $registryProxy->print(new Prometheus());
 
+    $proxy->__destruct();
     $parallelFactory->lowLevelPool()->kill();
     $parallelFactory->loop()->stop();
 })->done();
