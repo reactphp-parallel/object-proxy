@@ -8,7 +8,8 @@
     "Composer\\Composer", "Composer\\Config", "Composer\\IO\\IOInterface", "Composer\\Script\\Event",
     "Composer\\EventDispatcher\\EventSubscriberInterface", "Composer\\Package\\RootPackageInterface",
     "Composer\\Plugin\\PluginInterface", "Composer\\Script\\ScriptEvents", "WyriHaximus\\iteratorOrArrayToArray",
-    "Safe\\chmod", "Safe\\file_get_contents", "Safe\\file_put_contents", "Safe\\sprintf"
+    "Safe\\chmod", "Safe\\file_get_contents", "Safe\\file_put_contents", "Safe\\sprintf", "Safe\\spl_autoload_register",
+    "Safe\\substr"
   ],
   "php-core-extensions" : [
     "Core",

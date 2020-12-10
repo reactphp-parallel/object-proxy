@@ -21,11 +21,13 @@ use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
 
+use function array_key_exists;
 use function array_unique;
 use function array_values;
 use function count;
 use function defined;
 use function dirname;
+use function file_exists;
 use function function_exists;
 use function implode;
 use function microtime;
@@ -33,11 +35,16 @@ use function round;
 use function Safe\chmod;
 use function Safe\file_get_contents;
 use function Safe\file_put_contents;
+use function Safe\spl_autoload_register;
 use function Safe\sprintf;
+use function Safe\substr;
 use function str_replace;
+use function strlen;
+use function strpos;
 use function var_export;
 use function WyriHaximus\getIn;
 
+use const DIRECTORY_SEPARATOR;
 use const PHP_INT_MIN;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 use const WyriHaximus\Constants\Numeric\TWO;
@@ -75,21 +82,6 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $start    = microtime(true);
         $io       = $event->getIO();
         $composer = $event->getComposer();
-
-        // Composer is bugged and doesn't handle root package autoloading properly yet
-        if (array_key_exists('psr-4', $composer->getPackage()->getAutoload())) {
-            foreach ($composer->getPackage()->getAutoload()['psr-4'] as $ns => $p) {
-                $p = dirname($composer->getConfig()->get('vendor-dir')) . '/' . $p;
-                spl_autoload_register(static function ($class) use ($ns, $p) {
-                    if (strpos($class, $ns) === 0) {
-                        $fileName = $p . str_replace('\\', DIRECTORY_SEPARATOR, substr($class, strlen($ns))) . '.php';
-                        if (file_exists($fileName)) {
-                            include $fileName;
-                        }
-                    }
-                });
-            }
-        }
 
         $rootPath = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage());
 
@@ -136,6 +128,30 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         if (! function_exists('Safe\sprintf')) {
             /** @psalm-suppress UnresolvableInclude */
             require_once $composer->getConfig()->get('vendor-dir') . '/thecodingmachine/safe/generated/strings.php';
+        }
+
+        if (! function_exists('Safe\spl_autoload_register')) {
+            /** @psalm-suppress UnresolvableInclude */
+            require_once $composer->getConfig()->get('vendor-dir') . '/thecodingmachine/safe/generated/spl.php';
+        }
+
+        // Composer is bugged and doesn't handle root package autoloading properly yet
+        if (array_key_exists('psr-4', $composer->getPackage()->getAutoload())) {
+            foreach ($composer->getPackage()->getAutoload()['psr-4'] as $ns => $p) {
+                $p = dirname($composer->getConfig()->get('vendor-dir')) . '/' . $p;
+                spl_autoload_register(static function (string $class) use ($ns, $p): void {
+                    if (strpos($class, $ns) !== 0) {
+                        return;
+                    }
+
+                    $fileName = $p . str_replace('\\', DIRECTORY_SEPARATOR, substr($class, strlen($ns))) . '.php';
+                    if (! file_exists($fileName)) {
+                        return;
+                    }
+
+                    include $fileName;
+                });
+            }
         }
 
         $io->write('<info>react-parallel/object-proxy:</info> Locating interfaces');
