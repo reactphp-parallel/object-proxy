@@ -15,16 +15,16 @@
         "ext-parallel": "*",
         "api-clients/rx": "^2.2",
         "composer-plugin-api": "^2",
-        "doctrine/annotations": "^1.10",
+        "doctrine/annotations": "^1.11",
         "igorw/get-in": "^1.0",
-        "illuminate/collections": "^8.11",
+        "illuminate/collections": "^8.18",
         "nikic/php-parser": "^4.9",
         "psr/container": "^1.0",
         "psr/log": "^1.1",
         "react-parallel/object-proxy-attributes": "^1",
-        "react-parallel/react-parallel": "^1",
+        "react-parallel/react-parallel": "^1.1",
         "rx/operator-extras": "^2.1",
-        "wyrihaximus/constants": "^1.5",
+        "wyrihaximus/constants": "^1.6",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
         "wyrihaximus/metrics": "^1.0.2",
         "wyrihaximus/string-get-in": "^1.0"
@@ -32,7 +32,7 @@
     "require-dev": {
         "monolog/monolog": "^2.1",
         "thecodingmachine/safe": "^1.3",
-        "wyrihaximus/async-test-utilities": "^3.2",
+        "wyrihaximus/async-test-utilities": "^3.3.1",
         "yuloh/container": "^1.0"
     },
     "config": {
