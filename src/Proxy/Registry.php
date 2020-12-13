@@ -10,6 +10,7 @@ use ReactParallel\ObjectProxy\Generated\ProxyList;
 use function array_key_exists;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
+use const WyriHaximus\Constants\Boolean\TRUE_;
 
 final class Registry extends ProxyList
 {
@@ -61,7 +62,7 @@ final class Registry extends ProxyList
 
     public function share(object $object, string $interface): Instance
     {
-        $instance                           = new Instance($object, $interface, true, $this->in);
+        $instance                           = new Instance($object, $interface, TRUE_, $this->in);
         $this->instances[$instance->hash()] = $instance;
         $this->shared[$interface]           = $instance->hash();
 
