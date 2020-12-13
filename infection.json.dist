@@ -34,6 +34,7 @@
         },
         "LogicalNot": {
             "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::handleExistence",
                 "ReactParallel\\ObjectProxy\\Proxy::countDestruct",
                 "ReactParallel\\ObjectProxy\\Proxy::handleDestruct"
             ]
@@ -60,7 +61,8 @@
                 "ReactParallel\\ObjectProxy\\Message\\Parcel::notify",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::dereference",
-                "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked"
+                "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked",
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::dropByHash"
             ]
         }
     }

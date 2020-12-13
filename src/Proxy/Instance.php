@@ -4,26 +4,34 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Proxy;
 
+use parallel\Channel;
+use ReactParallel\ObjectProxy\Generated\ProxyList;
+
 use function count;
 use function get_class;
+use function spl_object_hash;
 
-final class Instance
+final class Instance extends ProxyList
 {
     private object $object;
     private string $class;
     private string $interface;
+    private Channel $in;
 
     /** @var array<string> */
     private array $references = [];
 
     private bool $locked;
+    private string $hash;
 
-    public function __construct(object $object, string $interface, bool $locked)
+    public function __construct(object $object, string $interface, bool $locked, Channel $in)
     {
         $this->object    = $object;
         $this->class     = get_class($object);
         $this->interface = $interface;
         $this->locked    = $locked;
+        $this->in        = $in;
+        $this->hash      = $this->class . '___' . spl_object_hash($object);
     }
 
     public function object(): object
@@ -56,5 +64,21 @@ final class Instance
     public function isLocked(): bool
     {
         return $this->locked;
+    }
+
+    public function hash(): string
+    {
+        return $this->hash;
+    }
+
+    public function create(): object
+    {
+        /**
+         * @psalm-suppress EmptyArrayAccess
+         */
+        $class = self::KNOWN_INTERFACE[$this->interface]['direct'];
+
+        /** @psalm-suppress InvalidStringClass */
+        return new $class($this->in, $this->hash);
     }
 }

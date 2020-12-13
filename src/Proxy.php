@@ -15,6 +15,7 @@ use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\Proxy\Instance;
+use ReactParallel\ObjectProxy\Proxy\Registry;
 use Rx\Observable;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
@@ -26,7 +27,6 @@ use function array_shift;
 use function assert;
 use function get_class;
 use function is_object;
-use function spl_object_hash;
 use function WyriHaximus\iteratorOrArrayToArray;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
@@ -38,26 +38,22 @@ final class Proxy extends ProxyList
     private const HASNT_PROXYABLE_INTERFACE  = false;
 
     private Factory $factory;
+    private Channel $in;
+    private Registry $registry;
     private ?Counters $counterCreate   = null;
     private ?Counters $counterNotify   = null;
     private ?Counters $counterCall     = null;
     private ?Counters $counterDestruct = null;
-
-    private Channel $in;
-
-    /** @var array<string, Instance> */
-    private array $instances = [];
-
-    /** @var array<string, string> */
-    private array $shared = [];
 
     /** @var array<string, string|false> */
     private array $detectedClasses = [];
 
     public function __construct(Configuration $configuration)
     {
-        $this->factory = $configuration->factory();
-        $metrics       = $configuration->metrics();
+        $this->factory  = $configuration->factory();
+        $this->in       = new Channel(Channel::Infinite);
+        $this->registry = new Registry($this->in);
+        $metrics        = $configuration->metrics();
         if ($metrics instanceof Metrics) {
             $this->counterCreate   = $metrics->createCounter();
             $this->counterCall     = $metrics->callCounter();
@@ -65,7 +61,6 @@ final class Proxy extends ProxyList
             $this->counterDestruct = $metrics->destructCounter();
         }
 
-        $this->in = new Channel(Channel::Infinite);
         $this->setUpHandlers();
     }
 
@@ -80,36 +75,22 @@ final class Proxy extends ProxyList
             throw NonExistentInterface::create($interface);
         }
 
-        if (array_key_exists($interface, $this->shared)) {
-            /**
-             * @psalm-suppress EmptyArrayAccess
-             */
-            $class    = self::KNOWN_INTERFACE[$interface]['direct'];
-            $instance = $this->instances[$this->shared[$interface]];
-            $hash     = $instance->class() . '___' . spl_object_hash($object);
-
-            /** @psalm-suppress InvalidStringClass */
-            return new $class($this->in, $hash);
+        if ($this->registry->hasByInterface($interface)) {
+            return $this->registry->getByInterface($interface)->create();
         }
 
-        /**
-         * @psalm-suppress EmptyArrayAccess
-         */
-        $class    = self::KNOWN_INTERFACE[$interface]['direct'];
-        $instance = new Instance($object, $interface, $share);
-        $hash     = $instance->class() . '___' . spl_object_hash($object);
-
-        $this->instances[$hash] = $instance;
         if ($share) {
-            $this->shared[$interface] = $hash;
+            $instance = $this->registry->share($object, $interface);
+        } else {
+            $instance = $this->registry->create($object, $interface);
         }
 
         if ($this->counterCreate instanceof Counters) {
-            $this->counterCreate->counter(new Label('class', $this->instances[$hash]->class()), new Label('interface', $interface))->incr();
+            $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
         }
 
         /** @psalm-suppress InvalidStringClass */
-        return new $class($this->in, $hash);
+        return $instance->create();
     }
 
     public function __destruct()
@@ -150,31 +131,31 @@ final class Proxy extends ProxyList
 
     private function handleExistence(Existence $existence): void
     {
-        if (! array_key_exists($existence->hash(), $this->instances)) {
+        if (! $this->registry->hasByHash($existence->hash())) {
             return;
         }
 
-        $instance = $this->instances[$existence->hash()];
+        $instance = $this->registry->getByHash($existence->hash());
         $instance->reference($existence->objectHash());
     }
 
     private function handleNotify(Notify $notify): void
     {
-        if (! array_key_exists($notify->hash(), $this->instances) && ($notify->link() === null || ! array_key_exists($notify->link()->rootHash(), $this->instances))) {
+        if (! $this->registry->hasByHash($notify->hash()) && ($notify->link() === null || ! $this->registry->hasByHash($notify->link()->rootHash()))) {
             return;
         }
 
         if ($notify->link() instanceof Link) {
-            $instance = $this->instances[$notify->link()->rootHash()];
+            $instance = $this->registry->getByHash($notify->link()->rootHash());
             $object   = $this->followChain($notify->link());
 
             if ($object === null) {
                 return;
             }
 
-            $instance = new Instance($object, $instance->interface(), false);
+            $instance = new Instance($object, $instance->interface(), FALSE_, $this->in);
         } else {
-            $instance = $this->instances[$notify->hash()];
+            $instance = $this->registry->getByHash($notify->hash());
             $instance->reference($notify->objectHash());
         }
 
@@ -188,21 +169,21 @@ final class Proxy extends ProxyList
 
     private function handleCall(Call $call): void
     {
-        if (! array_key_exists($call->hash(), $this->instances) && ($call->link() === null || ! array_key_exists($call->link()->rootHash(), $this->instances))) {
+        if (! $this->registry->hasByHash($call->hash()) && ($call->link() === null || ! $this->registry->hasByHash($call->link()->rootHash()))) {
             return;
         }
 
         if ($call->link() instanceof Link) {
-            $instance = $this->instances[$call->link()->rootHash()];
+            $instance = $this->registry->getByHash($call->link()->rootHash());
             $object   = $this->followChain($call->link());
 
             if ($object === null) {
                 return;
             }
 
-            $instance = new Instance($object, $instance->interface(), FALSE_);
+            $instance = new Instance($object, $instance->interface(), FALSE_, $this->in);
         } else {
-            $instance = $this->instances[$call->hash()];
+            $instance = $this->registry->getByHash($call->hash());
             $instance->reference($call->objectHash());
         }
 
@@ -230,11 +211,11 @@ final class Proxy extends ProxyList
 
     private function handleDestruct(Destruct $destruct): void
     {
-        if (! array_key_exists($destruct->hash(), $this->instances)) {
+        if (! $this->registry->hasByHash($destruct->hash())) {
             return;
         }
 
-        $instance = $this->instances[$destruct->hash()];
+        $instance = $this->registry->getByHash($destruct->hash());
         $count    = $instance->dereference($destruct->objectHash());
 
         $this->countDestruct($instance);
@@ -247,7 +228,7 @@ final class Proxy extends ProxyList
             return;
         }
 
-        unset($this->instances[$destruct->hash()]);
+        $this->registry->dropByHash($destruct->hash());
     }
 
     private function countDestruct(Instance $instance): void
@@ -285,12 +266,12 @@ final class Proxy extends ProxyList
         /** @psalm-suppress RedundantCondition */
         assert($link instanceof Link);
 
-        if (! array_key_exists($link->hash(), $this->instances)) {
+        if (! $this->registry->hasByHash($link->hash())) {
             return null;
         }
 
         /** @phpstan-ignore-next-line */
-        $result = $this->instances[$link->hash()]->object()->{$link->method()}(...$link->args());
+        $result = $this->registry->getByHash($link->hash())->object()->{$link->method()}(...$link->args());
         /** @phpstan-ignore-next-line */
         foreach ($chain as $link) {
             /** @phpstan-ignore-next-line */
