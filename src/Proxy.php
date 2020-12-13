@@ -69,7 +69,22 @@ final class Proxy extends ProxyList
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
-    public function create(object $object, string $interface, bool $share = FALSE_): object
+    public function share(object $object, string $interface): object
+    {
+        if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
+            throw NonExistentInterface::create($interface);
+        }
+
+        $instance = $this->registry->share($object, $interface);
+
+        if ($this->counterCreate instanceof Counters) {
+            $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
+        }
+
+        return $this->create($object, $interface);
+    }
+
+    public function create(object $object, string $interface): object
     {
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
@@ -79,11 +94,7 @@ final class Proxy extends ProxyList
             return $this->registry->getByInterface($interface)->create();
         }
 
-        if ($share) {
-            $instance = $this->registry->share($object, $interface);
-        } else {
-            $instance = $this->registry->create($object, $interface);
-        }
+        $instance = $this->registry->create($object, $interface);
 
         if ($this->counterCreate instanceof Counters) {
             $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();

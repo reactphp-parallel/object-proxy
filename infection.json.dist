@@ -29,6 +29,7 @@
         "InstanceOf_": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::setUpHandlers",
+                "ReactParallel\\ObjectProxy\\Proxy::handleNotify",
                 "ReactParallel\\ObjectProxy\\Proxy::countDestruct"
             ]
         },

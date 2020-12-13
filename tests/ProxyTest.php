@@ -109,6 +109,16 @@ final class ProxyTest extends AsyncTestCase
     /**
      * @test
      */
+    public function shareUnknown(): void
+    {
+        self::expectException(NonExistentInterface::class);
+
+        (new Proxy(new Configuration(new Factory(EventLoopFactory::create()))))->share(new stdClass(), 'NoordHollandsKanaal');
+    }
+
+    /**
+     * @test
+     */
     public function createUnknown(): void
     {
         self::expectException(NonExistentInterface::class);
@@ -126,7 +136,7 @@ final class ProxyTest extends AsyncTestCase
         $registry      = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
         $proxy         = (new Proxy((new Configuration($factory))->withMetrics(Metrics::create($registry))));
         $limitedPool   = $factory->limitedPool(1);
-        $registryProxy = $proxy->create($registry, Registry::class, true);
+        $registryProxy = $proxy->share($registry, Registry::class);
         $fn            = static function (int $int, WyriHaximus__Metrics_RegistryProxy $registryProxy): int {
             $registryProxy->setDeferredCallHandler(new Proxy\DeferredCallHandler());
             $registryProxy->counter('counter', 'bla bla bla', new Label\Name('name'))->counter(new Label('name', 'value'))->incr();
@@ -227,7 +237,7 @@ final class ProxyTest extends AsyncTestCase
         $registry      = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
         $proxy         = (new Proxy((new Configuration($factory))->withMetrics(Metrics::create($registry))));
         $limitedPool   = $factory->limitedPool(13);
-        $registryProxy = $proxy->create($registry, Registry::class, true);
+        $registryProxy = $proxy->share($registry, Registry::class);
         $fn            = static function (int $int, WyriHaximus__Metrics_RegistryProxy $registryProxy, int $sleep): int {
             $registryProxy->setDeferredCallHandler(new Proxy\DeferredCallHandler());
             sleep($sleep);
@@ -271,8 +281,11 @@ final class ProxyTest extends AsyncTestCase
         $factory  = new Factory($loop);
         $registry = new InMemmoryRegistry(MetricsConfiguration::create()->withClock(FrozenClock::fromUTC()));
         $proxy    = new Proxy(new Configuration($factory));
-        self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
-        self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class, $share));
+        self::assertInstanceOf(
+            Registry::class,
+            $share ? $proxy->share($registry, Registry::class) : $proxy->create($registry, Registry::class)
+        );
+        self::assertInstanceOf(Registry::class, $proxy->create($registry, Registry::class));
     }
 
     /**
