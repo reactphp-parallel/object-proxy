@@ -24,14 +24,15 @@ final class Instance extends ProxyList
     private bool $locked;
     private string $hash;
 
-    public function __construct(object $object, string $interface, bool $locked, Channel $in)
+    /** @phpstan-ignore-next-line */
+    public function __construct(object $object, string $interface, bool $locked, Channel $in, ?string $hash = null)
     {
         $this->object    = $object;
         $this->class     = get_class($object);
         $this->interface = $interface;
         $this->locked    = $locked;
         $this->in        = $in;
-        $this->hash      = $this->class . '___' . spl_object_hash($object);
+        $this->hash      = $hash ?? $this->class . '___' . spl_object_hash($object);
     }
 
     public function object(): object
