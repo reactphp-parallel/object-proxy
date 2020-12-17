@@ -20,6 +20,11 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers"
             ]
         },
+        "Coalesce": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
+            ]
+        },
         "Continue_": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
@@ -36,11 +41,18 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify"
             ]
         },
+        "Foreach_": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::__destruct"
+            ]
+        },
         "InstanceOf_": {
             "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct"
             ]
         },
@@ -49,12 +61,15 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleExistence",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
             ]
         },
         "MethodCallRemoval": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",
+                "ReactParallel\\ObjectProxy\\Proxy::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::__destruct",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
@@ -82,7 +97,8 @@
         },
         "Throw_": {
             "ignore": [
-                "ReactParallel\\ObjectProxy\\Proxy\\Handler::create"
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::share"
             ]
         }
     }

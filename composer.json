@@ -23,6 +23,8 @@
         "psr/log": "^1.1",
         "react-parallel/object-proxy-attributes": "^1",
         "react-parallel/react-parallel": "^1.1",
+        "react-parallel/streams": "^1.0",
+        "react/event-loop": "^1.1",
         "rx/operator-extras": "^2.1",
         "wyrihaximus/constants": "^1.6",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
