@@ -129,6 +129,16 @@ final class ProxyTest extends AsyncTestCase
     /**
      * @test
      */
+    public function threadItUnknown(): void
+    {
+        self::expectException(NonExistentInterface::class);
+
+        (new Proxy(new Configuration(new Factory(EventLoopFactory::create()))))->thread(new stdClass(), 'NoordHollandsKanaal');
+    }
+
+    /**
+     * @test
+     */
     public function metricsDestructionTesting(): void
     {
         $loop          = EventLoopFactory::create();

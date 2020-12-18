@@ -21,6 +21,7 @@
         "nikic/php-parser": "^4.9",
         "psr/container": "^1.0",
         "psr/log": "^1.1",
+        "react-parallel/event-loop": "^1.1",
         "react-parallel/object-proxy-attributes": "^1",
         "react-parallel/react-parallel": "^1.1",
         "react-parallel/streams": "^1.0",
