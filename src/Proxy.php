@@ -23,6 +23,7 @@ use function random_bytes;
 use function serialize;
 use function unserialize;
 
+use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 
 final class Proxy extends ProxyList
@@ -37,6 +38,8 @@ final class Proxy extends ProxyList
 
     /** @var array<Channel> */
     private array $destruct = [];
+
+    private bool $closed = FALSE_;
 
     public function __construct(Configuration $configuration)
     {
@@ -54,11 +57,19 @@ final class Proxy extends ProxyList
 
     public function has(string $interface): bool
     {
+        if ($this->closed === TRUE_) {
+            throw ClosedException::create();
+        }
+
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
     public function share(object $object, string $interface): object
     {
+        if ($this->closed === TRUE_) {
+            throw ClosedException::create();
+        }
+
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
         }
@@ -74,6 +85,10 @@ final class Proxy extends ProxyList
 
     public function create(object $object, string $interface): object
     {
+        if ($this->closed === TRUE_) {
+            throw ClosedException::create();
+        }
+
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
         }
@@ -94,6 +109,10 @@ final class Proxy extends ProxyList
 
     public function thread(object $object, string $interface): object
     {
+        if ($this->closed === TRUE_) {
+            throw ClosedException::create();
+        }
+
         if ($this->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
         }
@@ -128,13 +147,24 @@ final class Proxy extends ProxyList
         return $instance->create();
     }
 
-    public function __destruct()
+    public function close(): void
     {
+        if ($this->closed === TRUE_) {
+            throw ClosedException::create();
+        }
+
+        $this->closed = TRUE_;
+
         foreach ($this->destruct as $destruct) {
             $destruct->send('bye');
             $destruct->close();
         }
 
         $this->in->close();
+    }
+
+    public function __destruct()
+    {
+        $this->close();
     }
 }
