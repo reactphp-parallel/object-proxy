@@ -14,6 +14,7 @@ parameters:
 	ergebnis:
 		classesAllowedToBeExtended:
 			- Exception
+			- RuntimeException
 			- Monolog\Handler\AbstractHandler
 			- ReactParallel\ObjectProxy\Generated\ProxyList
 

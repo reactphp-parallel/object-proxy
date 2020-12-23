@@ -71,6 +71,7 @@
         "MethodCallRemoval": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",
+                "ReactParallel\\ObjectProxy\\Proxy::close",
                 "ReactParallel\\ObjectProxy\\Proxy::create",
                 "ReactParallel\\ObjectProxy\\Proxy::thread",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::__destruct",

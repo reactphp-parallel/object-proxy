@@ -13,6 +13,7 @@ use React\Promise\Promise;
 use React\Promise\PromiseInterface;
 use React\Promise\Timer\TimeoutException;
 use ReactParallel\Factory;
+use ReactParallel\ObjectProxy\ClosedException;
 use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
 use ReactParallel\ObjectProxy\Generated\WyriHaximus__Metrics_RegistryProxy;
@@ -305,5 +306,75 @@ final class ProxyTest extends AsyncTestCase
     {
         yield 'true' => [TRUE_];
         yield 'false' => [FALSE_];
+    }
+
+    /**
+     * @test
+     */
+    public function cannotCloseProxyTwice(): void
+    {
+        self::expectException(ClosedException::class);
+
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->close();
+        $proxy->close();
+    }
+
+    /**
+     * @test
+     */
+    public function cannotUseClosedProxyHas(): void
+    {
+        self::expectException(ClosedException::class);
+
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->close();
+        $proxy->has('string');
+    }
+
+    /**
+     * @test
+     */
+    public function cannotUseClosedProxyShare(): void
+    {
+        self::expectException(ClosedException::class);
+
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->close();
+        $proxy->share(new stdClass(), 'string');
+    }
+
+    /**
+     * @test
+     */
+    public function cannotUseClosedProxyThread(): void
+    {
+        self::expectException(ClosedException::class);
+
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->close();
+        $proxy->thread(new stdClass(), 'string');
+    }
+
+    /**
+     * @test
+     */
+    public function cannotUseClosedProxyCreate(): void
+    {
+        self::expectException(ClosedException::class);
+
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->close();
+        $proxy->create(new stdClass(), 'string');
     }
 }
