@@ -68,6 +68,16 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
             ]
         },
+        "LogicalOr": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleExistence",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::countDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleDestruct",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
+                "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleCall",
+                "ReactParallel\\ObjectProxy\\Proxy\\Registry::__construct"
+            ]
+        },
         "MethodCallRemoval": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::__destruct",

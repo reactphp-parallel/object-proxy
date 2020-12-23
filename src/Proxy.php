@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
+use parallel\Channel\Error\Closed;
 use React\EventLoop\StreamSelectLoop;
 use ReactParallel\EventLoop\EventLoopBridge;
 use ReactParallel\Factory;
@@ -156,11 +157,19 @@ final class Proxy extends ProxyList
         $this->closed = TRUE_;
 
         foreach ($this->destruct as $destruct) {
-            $destruct->send('bye');
-            $destruct->close();
+            try {
+                $destruct->send('bye');
+                $destruct->close();
+            } catch (Closed $closed) {
+                // @ignoreException
+            }
         }
 
-        $this->in->close();
+        try {
+            $this->in->close();
+        } catch (Closed $closed) {
+            // @ignoreException
+        }
     }
 
     public function __destruct()
