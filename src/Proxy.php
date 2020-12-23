@@ -174,6 +174,10 @@ final class Proxy extends ProxyList
 
     public function __destruct()
     {
+        if ($this->closed === TRUE_) {
+            return;
+        }
+
         $this->close();
     }
 }
