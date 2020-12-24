@@ -19,8 +19,6 @@ use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
 
 use function array_key_exists;
-use function bin2hex;
-use function random_bytes;
 use function serialize;
 use function unserialize;
 
@@ -29,7 +27,6 @@ use const WyriHaximus\Constants\Boolean\TRUE_;
 
 final class Proxy extends ProxyList
 {
-    private const RANDOM_BYTES_LENGTH       = 13;
     private const HASNT_PROXYABLE_INTERFACE = false;
 
     private Factory $factory;
@@ -124,7 +121,7 @@ final class Proxy extends ProxyList
         $in               = new Channel(Channel::Infinite);
         $destruct         = new Channel(Channel::Infinite);
         $this->destruct[] = $destruct;
-        $instance         = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
+        $instance         = $this->registry->thread($object, $interface, $in);
 
         $this->factory->call(
             static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct): void {
