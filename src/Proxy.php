@@ -121,9 +121,10 @@ final class Proxy extends ProxyList
         /**
          * @psalm-suppress EmptyArrayAccess
          */
-        $in       = new Channel(Channel::Infinite);
-        $destruct = new Channel(Channel::Infinite);
-        $instance = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
+        $in               = new Channel(Channel::Infinite);
+        $destruct         = new Channel(Channel::Infinite);
+        $this->destruct[] = $destruct;
+        $instance         = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
 
         $this->factory->call(
             static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct): void {
@@ -143,6 +144,10 @@ final class Proxy extends ProxyList
             },
             [serialize($object), $interface, $instance->hash(), $in, $destruct]
         );
+
+        if ($this->counterCreate instanceof Counters) {
+            $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
+        }
 
         /** @psalm-suppress InvalidStringClass */
         return $instance->create();
