@@ -29,6 +29,7 @@ use function get_class;
 use function is_object;
 use function WyriHaximus\iteratorOrArrayToArray;
 
+use const PHP_EOL;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Numeric\ZERO;
 
@@ -82,12 +83,13 @@ final class Handler extends ProxyList
         }
 
         if ($this->registry->hasByInterface($interface)) {
-            return $this->registry->getByInterface($interface)->create();
+            $instance = $this->registry->getByInterface($interface);
+        } else {
+            $instance = $this->registry->create($object, $interface);
         }
 
-        $instance = $this->registry->create($object, $interface);
-
         if ($this->counterCreate instanceof Counters) {
+            echo PHP_EOL, __METHOD__, PHP_EOL;
             $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
         }
 
@@ -143,14 +145,19 @@ final class Handler extends ProxyList
         }
 
         if ($notify->link() instanceof Link) {
-            $instance = $this->registry->getByHash($notify->link()->rootHash());
-            $object   = $this->followChain($notify->link());
+            $object = $this->followChain($notify->link());
 
             if ($object === null) {
                 return;
             }
 
-            $instance = new Instance($object, $instance->interface(), FALSE_, $this->in);
+            $interface = $this->getInterfaceForOutcome($object);
+
+            if ($interface === null) {
+                return;
+            }
+
+            $instance = new Instance($object, $interface, FALSE_, $this->in);
         } else {
             $instance = $this->registry->getByHash($notify->hash());
             $instance->reference($notify->objectHash());
@@ -171,14 +178,19 @@ final class Handler extends ProxyList
         }
 
         if ($call->link() instanceof Link) {
-            $instance = $this->registry->getByHash($call->link()->rootHash());
-            $object   = $this->followChain($call->link());
+            $object = $this->followChain($call->link());
 
             if ($object === null) {
                 return;
             }
 
-            $instance = new Instance($object, $instance->interface(), FALSE_, $this->in);
+            $interface = $this->getInterfaceForOutcome($object);
+
+            if ($interface === null) {
+                return;
+            }
+
+            $instance = new Instance($object, $interface, FALSE_, $this->in);
         } else {
             $instance = $this->registry->getByHash($call->hash());
             $instance->reference($call->objectHash());
@@ -269,12 +281,36 @@ final class Handler extends ProxyList
 
         /** @phpstan-ignore-next-line */
         $result = $this->registry->getByHash($link->hash())->object()->{$link->method()}(...$link->args());
+        $this->countHandledChain($result);
         /** @phpstan-ignore-next-line */
         foreach ($chain as $link) {
             /** @phpstan-ignore-next-line */
             $result = $result->{$link->method()}(...$link->args());
+            $this->countHandledChain($result);
         }
 
         return $result;
+    }
+
+    private function countHandledChain(object $object): void
+    {
+        $interface = $this->getInterfaceForOutcome($object);
+        if ($interface === null) {
+            return;
+        }
+
+        if ($this->counterCreate instanceof Counters) {
+            $this->counterCreate->counter(new Label('class', get_class($object)), new Label('interface', $interface))->incr();
+        }
+
+        if ($this->counterCall instanceof Counters) {
+            $this->counterCall->counter(new Label('class', get_class($object)), new Label('interface', $interface))->incr();
+        }
+
+        if (! ($this->counterDestruct instanceof Counters)) {
+            return;
+        }
+
+        $this->counterDestruct->counter(new Label('class', get_class($object)), new Label('interface', $interface))->incr();
     }
 }
