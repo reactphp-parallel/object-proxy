@@ -29,7 +29,6 @@ use function get_class;
 use function is_object;
 use function WyriHaximus\iteratorOrArrayToArray;
 
-use const PHP_EOL;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Numeric\ZERO;
 
@@ -89,7 +88,6 @@ final class Handler extends ProxyList
         }
 
         if ($this->counterCreate instanceof Counters) {
-            echo PHP_EOL, __METHOD__, PHP_EOL;
             $this->counterCreate->counter(new Label('class', $instance->class()), new Label('interface', $interface))->incr();
         }
 

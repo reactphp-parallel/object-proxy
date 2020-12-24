@@ -52,6 +52,7 @@
         "InstanceOf_": {
             "ignore": [
                 "ReactParallel\\ObjectProxy\\Proxy::create",
+                "ReactParallel\\ObjectProxy\\Proxy::thread",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::create",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::setUpHandlers",
                 "ReactParallel\\ObjectProxy\\Proxy\\Handler::handleNotify",
@@ -111,6 +112,11 @@
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::dereference",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked",
                 "ReactParallel\\ObjectProxy\\Proxy\\Registry::dropByHash"
+            ]
+        },
+        "Ternary": {
+            "ignore": [
+                "ReactParallel\\ObjectProxy\\Proxy::thread"
             ]
         },
         "Throw_": {

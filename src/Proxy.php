@@ -16,6 +16,7 @@ use ReactParallel\ObjectProxy\Proxy\Instance;
 use ReactParallel\ObjectProxy\Proxy\Registry;
 use ReactParallel\Streams\Factory as StreamsFactory;
 use WyriHaximus\Metrics\Label;
+use WyriHaximus\Metrics\Registry as MetricsRegistry;
 use WyriHaximus\Metrics\Registry\Counters;
 
 use function array_key_exists;
@@ -123,14 +124,21 @@ final class Proxy extends ProxyList
         $this->destruct[] = $destruct;
         $instance         = $this->registry->thread($object, $interface, $in);
 
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @phpstan-ignore-next-line
+         */
+        $metrics = $object instanceof MetricsRegistry ? null : ($this->registry->hasByInterface(MetricsRegistry::class) ? Metrics::create($this->registry->getByInterface(MetricsRegistry::class)->create()) : null);
+
         $this->factory->call(
-            static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct): void {
+            /** @phpstan-ignore-next-line */
+            static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct, ?Metrics $metrics = null): void {
                 $object        = unserialize($object);
                 $instance      = new Instance($object, $interface, TRUE_, $in, $hash);
                 $eventLoop     = new StreamSelectLoop();
                 $streamFactory = new StreamsFactory(new EventLoopBridge($eventLoop));
                 $registry      = new Registry($in, $instance);
-                new Handler($in, $eventLoop, $streamFactory, $registry);
+                new Handler($in, $eventLoop, $streamFactory, $registry, $object instanceof MetricsRegistry ? Metrics::create($object) : $metrics);
 
                 $stop = static function () use ($eventLoop): void {
                     $eventLoop->stop();
@@ -139,7 +147,14 @@ final class Proxy extends ProxyList
 
                 $eventLoop->run();
             },
-            [serialize($object), $interface, $instance->hash(), $in, $destruct]
+            [
+                serialize($object),
+                $interface,
+                $instance->hash(),
+                $in,
+                $destruct,
+                $metrics,
+            ]
         );
 
         if ($this->counterCreate instanceof Counters) {
