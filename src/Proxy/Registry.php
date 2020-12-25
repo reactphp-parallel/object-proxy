@@ -8,12 +8,16 @@ use parallel\Channel;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 
 use function array_key_exists;
+use function bin2hex;
+use function random_bytes;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 
 final class Registry extends ProxyList
 {
+    private const RANDOM_BYTES_LENGTH = 13;
+
     private Channel $in;
 
     /** @var array<string, Instance> */
@@ -71,6 +75,15 @@ final class Registry extends ProxyList
     public function share(object $object, string $interface): Instance
     {
         $instance                           = new Instance($object, $interface, TRUE_, $this->in);
+        $this->instances[$instance->hash()] = $instance;
+        $this->shared[$interface]           = $instance->hash();
+
+        return $instance;
+    }
+
+    public function thread(object $object, string $interface, Channel $in): Instance
+    {
+        $instance                           = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
         $this->instances[$instance->hash()] = $instance;
         $this->shared[$interface]           = $instance->hash();
 
