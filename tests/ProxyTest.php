@@ -8,6 +8,8 @@ use Lcobucci\Clock\FrozenClock;
 use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use React\Cache\ArrayCache;
+use React\Cache\CacheInterface;
 use React\EventLoop\Factory as EventLoopFactory;
 use React\Promise\Promise;
 use React\Promise\PromiseInterface;
@@ -16,6 +18,7 @@ use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\ClosedException;
 use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
+use ReactParallel\ObjectProxy\Generated\React__Cache_CacheInterfaceProxy;
 use ReactParallel\ObjectProxy\Generated\WyriHaximus__Metrics_RegistryProxy;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\ObjectProxy\Proxy;
@@ -442,5 +445,34 @@ final class ProxyTest extends AsyncTestCase
         $proxy   = new Proxy(new Configuration($factory));
         $proxy->close();
         $proxy->create(new stdClass(), 'string');
+    }
+
+    /**
+     * @test
+     */
+    public function promises(): void
+    {
+        $fromKey = 'from';
+        $toKey   = 'to';
+        $time    = time();
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $cache   = new ArrayCache();
+        $cache->set($fromKey, $time);
+        $cacheProxy = $proxy->create($cache, CacheInterface::class);
+        $time       = time();
+
+        $returnedTime = $this->await(
+        /** @phpstan-ignore-next-line */
+            $factory->call(static function (React__Cache_CacheInterfaceProxy $cache, string $toKey, string $fromKey): bool {
+                return $cache->set($toKey, $cache->get($fromKey));
+            }, [$cacheProxy, $toKey, $fromKey])->always(static function () use ($factory): void {
+                $factory->lowLevelPool()->close();
+            })->then(static fn (): PromiseInterface => $cache->get($toKey)),
+            $loop
+        );
+
+        self::assertSame($time, $returnedTime);
     }
 }

@@ -6,6 +6,7 @@ namespace ReactParallel\ObjectProxy\Proxy;
 
 use parallel\Channel;
 use React\EventLoop\LoopInterface;
+use React\Promise\PromiseInterface;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
@@ -24,7 +25,6 @@ use function ApiClients\Tools\Rx\observableFromArray;
 use function array_key_exists;
 use function array_reverse;
 use function array_shift;
-use function assert;
 use function get_class;
 use function is_object;
 use function WyriHaximus\iteratorOrArrayToArray;
@@ -213,6 +213,20 @@ final class Handler extends ProxyList
             }
         }
 
+        if ($outcome instanceof PromiseInterface) {
+            /**
+             * @param mixed $outcome
+             *
+             * @psalm-suppress MissingClosureParamType
+             */
+            $forwardCallable = static function ($outcome) use ($call): void {
+                $call->channel()->send($outcome);
+            };
+            $outcome->then($forwardCallable, $forwardCallable);
+
+            return;
+        }
+
         $call->channel()->send($outcome);
     }
 
@@ -270,8 +284,6 @@ final class Handler extends ProxyList
 
         $chain = array_reverse($chain);
         $link  = array_shift($chain);
-        /** @psalm-suppress RedundantCondition */
-        assert($link instanceof Link);
 
         if (! $this->registry->hasByHash($link->hash())) {
             return null;
