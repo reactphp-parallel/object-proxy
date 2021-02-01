@@ -33,6 +33,7 @@
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
         "wyrihaximus/metrics": "^1.0.2",
         "wyrihaximus/metrics-lazy-registry": "^1.0",
+        "wyrihaximus/react-mutex-contracts": "^1.0",
         "wyrihaximus/string-get-in": "^1.0"
     },
     "require-dev": {
@@ -63,7 +64,11 @@
                     "WyriHaximus\\Metrics\\Counter",
                     "WyriHaximus\\Metrics\\Gauge",
                     "WyriHaximus\\Metrics\\Histogram",
-                    "WyriHaximus\\Metrics\\Summary"
+                    "WyriHaximus\\Metrics\\Summary",
+                    "WyriHaximus\\React\\Mutex\\Contracts\\MutexInterface"
+                ],
+                "no-promises-interfaces": [
+                    "WyriHaximus\\React\\Mutex\\Contracts\\MutexInterface"
                 ]
             }
         }

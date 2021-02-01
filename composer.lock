@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c01d7fc69a292f26c11be131417e4e0",
+    "content-hash": "32b6bb3719d654eb42f76421248b3283",
     "packages": [
         {
             "name": "api-clients/rx",
@@ -846,16 +846,16 @@
         },
         {
             "name": "react-parallel/limited-pool",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp-parallel/limited-pool.git",
-                "reference": "01001816a73dc754504cac380f0def65faaedd13"
+                "reference": "552ab9f79aa5f6338bbdfe3b14b8fab9c221b34b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp-parallel/limited-pool/zipball/01001816a73dc754504cac380f0def65faaedd13",
-                "reference": "01001816a73dc754504cac380f0def65faaedd13",
+                "url": "https://api.github.com/repos/reactphp-parallel/limited-pool/zipball/552ab9f79aa5f6338bbdfe3b14b8fab9c221b34b",
+                "reference": "552ab9f79aa5f6338bbdfe3b14b8fab9c221b34b",
                 "shasum": ""
             },
             "require": {
@@ -868,13 +868,13 @@
                 "react/event-loop": "^1.1",
                 "react/promise": "^2.7",
                 "wyrihaximus/pool-info": "^1.0",
-                "wyrihaximus/ticking-promise": "^1.6"
+                "wyrihaximus/ticking-promise": "^1.6 || ^2.0"
             },
             "require-dev": {
                 "moneyphp/money": "^3.2 || ^3.2.1",
                 "ocramius/package-versions": "^1.4",
-                "react-parallel/pool-tests": "^2.0",
-                "wyrihaximus/async-test-utilities": "^2.2",
+                "react-parallel/pool-tests": "^3.0",
+                "wyrihaximus/async-test-utilities": "^3.3",
                 "wyrihaximus/iterator-or-array-to-array": "^1.1"
             },
             "type": "library",
@@ -897,7 +897,7 @@
             "description": "🏔️ Limited pool for ext-parallel",
             "support": {
                 "issues": "https://github.com/reactphp-parallel/limited-pool/issues",
-                "source": "https://github.com/reactphp-parallel/limited-pool/tree/master"
+                "source": "https://github.com/reactphp-parallel/limited-pool/tree/1.0.1"
             },
             "funding": [
                 {
@@ -905,7 +905,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-08-05T19:03:21+00:00"
+            "time": "2021-01-10T10:50:17+00:00"
         },
         {
             "name": "react-parallel/object-proxy-attributes",
@@ -1825,6 +1825,50 @@
             "time": "2019-09-27T06:28:08+00:00"
         },
         {
+            "name": "wyrihaximus/react-mutex-contracts",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/WyriHaximus/reactphp-mutex-contracts.git",
+                "reference": "c2f97f027f2ffa114ca20ecbaa2aaadefdf8b84c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-mutex-contracts/zipball/c2f97f027f2ffa114ca20ecbaa2aaadefdf8b84c",
+                "reference": "c2f97f027f2ffa114ca20ecbaa2aaadefdf8b84c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4",
+                "react/promise": "^2.8"
+            },
+            "require-dev": {
+                "wyrihaximus/async-test-utilities": "^3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "WyriHaximus\\React\\Mutex\\Contracts\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Mutex locking contracts for ReactPHP projects",
+            "support": {
+                "issues": "https://github.com/WyriHaximus/reactphp-mutex-contracts/issues",
+                "source": "https://github.com/WyriHaximus/reactphp-mutex-contracts/tree/1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                }
+            ],
+            "time": "2021-01-21T19:16:05+00:00"
+        },
+        {
             "name": "wyrihaximus/string-get-in",
             "version": "1.0.0",
             "source": {
@@ -1870,27 +1914,25 @@
         },
         {
             "name": "wyrihaximus/ticking-promise",
-            "version": "1.6.3",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/TickingPromise.git",
-                "reference": "4bb99024402bb7526de8880f3dab0c1f0858def5"
+                "reference": "d3903d4bebe8e3c5b11464c0bb81802cdeeb3751"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/TickingPromise/zipball/4bb99024402bb7526de8880f3dab0c1f0858def5",
-                "reference": "4bb99024402bb7526de8880f3dab0c1f0858def5",
+                "url": "https://api.github.com/repos/WyriHaximus/TickingPromise/zipball/d3903d4bebe8e3c5b11464c0bb81802cdeeb3751",
+                "reference": "d3903d4bebe8e3c5b11464c0bb81802cdeeb3751",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.0 || ^5.4",
-                "react/event-loop": "^1.0 || ^0.5 || ^0.4",
-                "react/promise": "~2.1"
+                "php": "^8 || ^7.4",
+                "react/event-loop": "^1.0",
+                "react/promise": "^2.8"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.4",
-                "squizlabs/php_codesniffer": "^1.5.6",
-                "vectorface/dunit": "~1.4"
+                "wyrihaximus/async-test-utilities": "^3"
             },
             "type": "library",
             "autoload": {
@@ -1915,9 +1957,15 @@
             "description": "Wrapping ticks into a promise",
             "support": {
                 "issues": "https://github.com/WyriHaximus/TickingPromise/issues",
-                "source": "https://github.com/WyriHaximus/TickingPromise/tree/master"
+                "source": "https://github.com/WyriHaximus/TickingPromise/tree/2.1.0"
             },
-            "time": "2018-04-05T12:36:50+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-11-25T12:43:21+00:00"
         }
     ],
     "packages-dev": [
@@ -5596,16 +5644,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.70",
+            "version": "0.12.71",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee"
+                "reference": "d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee",
-                "reference": "07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5",
+                "reference": "d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5",
                 "shasum": ""
             },
             "require": {
@@ -5636,7 +5684,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/0.12.70"
+                "source": "https://github.com/phpstan/phpstan/tree/0.12.71"
             },
             "funding": [
                 {
@@ -5652,7 +5700,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-01-27T17:06:47+00:00"
+            "time": "2021-02-01T18:24:00+00:00"
         },
         {
             "name": "phpstan/phpstan-deprecation-rules",
@@ -9672,16 +9720,16 @@
         },
         {
             "name": "wyrihaximus/async-test-utilities",
-            "version": "3.4.2",
+            "version": "3.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/php-async-test-utilities.git",
-                "reference": "c239f823abc2909733630899ca0b7ec1d0724422"
+                "reference": "d1e09cd498a8be8283d45907ee777277e913ecab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/php-async-test-utilities/zipball/c239f823abc2909733630899ca0b7ec1d0724422",
-                "reference": "c239f823abc2909733630899ca0b7ec1d0724422",
+                "url": "https://api.github.com/repos/WyriHaximus/php-async-test-utilities/zipball/d1e09cd498a8be8283d45907ee777277e913ecab",
+                "reference": "d1e09cd498a8be8283d45907ee777277e913ecab",
                 "shasum": ""
             },
             "require": {
@@ -9690,7 +9738,7 @@
                 "phpunit/phpunit": "^9.5",
                 "react/event-loop": "^1.1",
                 "react/promise": "^2.8",
-                "wyrihaximus/test-utilities": "^3.5.2"
+                "wyrihaximus/test-utilities": "^3.5.3"
             },
             "require-dev": {
                 "wyrihaximus/iterator-or-array-to-array": "^1.1"
@@ -9714,7 +9762,7 @@
             "description": "Test utilities for api-clients packages",
             "support": {
                 "issues": "https://github.com/WyriHaximus/php-async-test-utilities/issues",
-                "source": "https://github.com/WyriHaximus/php-async-test-utilities/tree/3.4.2"
+                "source": "https://github.com/WyriHaximus/php-async-test-utilities/tree/3.4.3"
             },
             "funding": [
                 {
@@ -9722,7 +9770,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-01-26T05:23:50+00:00"
+            "time": "2021-01-29T18:28:57+00:00"
         },
         {
             "name": "wyrihaximus/coding-standard",
@@ -9808,20 +9856,20 @@
         },
         {
             "name": "wyrihaximus/test-utilities",
-            "version": "3.5.2",
+            "version": "3.5.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/php-test-utilities.git",
-                "reference": "acf6b25513aba198717ab57d4382e1677ffafcc3"
+                "reference": "8ec4fef66fd2b9a6c22a5ce9982314a7706b7b77"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/php-test-utilities/zipball/acf6b25513aba198717ab57d4382e1677ffafcc3",
-                "reference": "acf6b25513aba198717ab57d4382e1677ffafcc3",
+                "url": "https://api.github.com/repos/WyriHaximus/php-test-utilities/zipball/8ec4fef66fd2b9a6c22a5ce9982314a7706b7b77",
+                "reference": "8ec4fef66fd2b9a6c22a5ce9982314a7706b7b77",
                 "shasum": ""
             },
             "require": {
-                "composer/composer": "^1.10.19",
+                "composer/composer": "^1.10.20",
                 "ergebnis/composer-normalize": "^2.13.2",
                 "icanhazstring/composer-unused": "^0.7.5",
                 "infection/infection": "^0.20.1",
@@ -9834,7 +9882,7 @@
                 "php-parallel-lint/php-parallel-lint": "^1.2.0",
                 "phpspec/prophecy": "^1.12.2",
                 "phpspec/prophecy-phpunit": "^2.0.1",
-                "phpstan/phpstan": "^0.12.69",
+                "phpstan/phpstan": "^0.12.70",
                 "phpunit/phpunit": "^9.5.1",
                 "psalm/plugin-phpunit": "^0.15.1",
                 "roave/backward-compatibility-check": "^5.0.0",
@@ -9842,7 +9890,7 @@
                 "squizlabs/php_codesniffer": "^3.5.8",
                 "thecodingmachine/safe": "^1.3.3",
                 "vimeo/psalm": "^4.4.1",
-                "wyrihaximus/coding-standard": "^2.2.0",
+                "wyrihaximus/coding-standard": "^2.3.0",
                 "wyrihaximus/phpstan-rules-wrapper": "^1.2.2"
             },
             "conflict": {
@@ -9890,7 +9938,7 @@
             "description": "🛠️ Test utilities for api-clients packages",
             "support": {
                 "issues": "https://github.com/WyriHaximus/php-test-utilities/issues",
-                "source": "https://github.com/WyriHaximus/php-test-utilities/tree/3.5.2"
+                "source": "https://github.com/WyriHaximus/php-test-utilities/tree/3.5.3"
             },
             "funding": [
                 {
@@ -9898,7 +9946,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-01-25T17:23:54+00:00"
+            "time": "2021-01-28T03:09:50+00:00"
         },
         {
             "name": "yuloh/container",

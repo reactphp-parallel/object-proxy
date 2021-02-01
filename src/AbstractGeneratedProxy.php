@@ -13,6 +13,7 @@ use ReactParallel\ObjectProxy\Message\Existence;
 use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
+use Throwable;
 
 use function array_key_exists;
 use function bin2hex;
@@ -174,12 +175,11 @@ abstract class AbstractGeneratedProxy extends ProxyList
     }
 
     /**
-     * @param mixed|\Throwable $result
-     * @return PromiseInterface
+     * @param mixed|Throwable $result
      */
     final public function detectResolvedOrRejectedPromise($result): PromiseInterface
     {
-        if ($result instanceof \Throwable) {
+        if ($result instanceof Throwable) {
             return reject($result);
         }
 
