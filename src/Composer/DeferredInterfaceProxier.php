@@ -29,6 +29,7 @@ final class DeferredInterfaceProxier
         'ReactParallel',
         'ObjectProxy',
         'Generated',
+        'Proxies',
     ];
     private const NAMESPACE_GLUE     = '\\';
     /** @var array<Node\Stmt> */
