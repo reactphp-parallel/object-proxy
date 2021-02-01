@@ -160,6 +160,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $io->write('<info>react-parallel/object-proxy:</info> Locating interfaces');
 
         $installPath                     = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
+        $installPathProxies              = $installPath . 'Proxies/';
         $installPathNoPromisesInterfaces = $installPath . 'Interfaces/';
         $proxies                         = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
 
@@ -181,10 +182,10 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                 'deferred' => '\\' . implode('\\', DeferredInterfaceProxier::GENERATED_NAMESPACE) . '\\' . $proxiers->deferred()->className(),
             ];
 
-            file_put_contents($installPath . $proxiers->direct()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->direct()->stmts()) . "\r\n");
-            chmod($installPath . $proxiers->direct()->className() . '.php', 0664);
-            file_put_contents($installPath . $proxiers->deferred()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->deferred()->stmts()) . "\r\n");
-            chmod($installPath . $proxiers->deferred()->className() . '.php', 0664);
+            file_put_contents($installPathProxies . $proxiers->direct()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->direct()->stmts()) . "\r\n");
+            chmod($installPathProxies . $proxiers->direct()->className() . '.php', 0664);
+            file_put_contents($installPathProxies . $proxiers->deferred()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->deferred()->stmts()) . "\r\n");
+            chmod($installPathProxies . $proxiers->deferred()->className() . '.php', 0664);
             if (! in_array($proxiers->noPromise()->interfaceName(), $noPromises, true)) {
                 continue;
             }
