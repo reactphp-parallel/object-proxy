@@ -30,11 +30,14 @@ use function dirname;
 use function file_exists;
 use function function_exists;
 use function implode;
+use function in_array;
+use function is_dir;
 use function microtime;
 use function round;
 use function Safe\chmod;
 use function Safe\file_get_contents;
 use function Safe\file_put_contents;
+use function Safe\mkdir;
 use function Safe\spl_autoload_register;
 use function Safe\sprintf;
 use function Safe\substr;
@@ -156,8 +159,18 @@ final class Installer implements PluginInterface, EventSubscriberInterface
 
         $io->write('<info>react-parallel/object-proxy:</info> Locating interfaces');
 
-        $installPath = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
-        $proxies     = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
+        $installPath                     = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
+        $installPathNoPromisesInterfaces = $installPath . 'Interfaces/';
+        $proxies                         = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
+
+        $packages   = $composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
+        $packages[] = $composer->getPackage();
+
+        $noPromises = (new Collection(array_unique(array_values((new Collection($packages))->filter(
+            static fn (PackageInterface $package): bool => (bool) count($package->getAutoload())
+        )->flatMap(
+            static fn (PackageInterface $package): array => getIn($package->getExtra(), 'react-parallel.object-proxy.no-promises-interfaces', [])
+        )->all()))))->toArray();
 
         $io->write('<info>react-parallel/object-proxy:</info> Found ' . count($proxies) . ' interface(s) and generated a proxy for each of them');
 
@@ -172,6 +185,16 @@ final class Installer implements PluginInterface, EventSubscriberInterface
             chmod($installPath . $proxiers->direct()->className() . '.php', 0664);
             file_put_contents($installPath . $proxiers->deferred()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->deferred()->stmts()) . "\r\n");
             chmod($installPath . $proxiers->deferred()->className() . '.php', 0664);
+            if (! in_array($proxiers->noPromise()->interfaceName(), $noPromises, true)) {
+                continue;
+            }
+
+            if (! is_dir($installPathNoPromisesInterfaces . str_replace('\\', '/', $proxiers->noPromise()->namespace()))) {
+                mkdir($installPathNoPromisesInterfaces . str_replace('\\', '/', $proxiers->noPromise()->namespace()), 0764, true);
+            }
+
+            file_put_contents($installPathNoPromisesInterfaces . str_replace('\\', '/', $proxiers->noPromise()->className()) . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->noPromise()->stmts()) . "\r\n");
+            chmod($installPathNoPromisesInterfaces . str_replace('\\', '/', $proxiers->noPromise()->className()) . '.php', 0664);
         }
 
         $classContents = sprintf(
@@ -248,6 +271,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                         new Proxiers(
                             new InterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? []),
                             new DeferredInterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? []),
+                            new NoPromisesInterfacer($phpParser->parse(file_get_contents($fileName)) ?? []),
                         ),
                     ];
                 }

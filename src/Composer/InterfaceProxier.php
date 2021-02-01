@@ -8,7 +8,6 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Builder\Method;
 use PhpParser\Comment;
 use PhpParser\Node;
-use React\Promise\PromiseInterface;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
 use ReactParallel\ObjectProxy\Attribute\Defer;
 use ReflectionMethod;
@@ -239,16 +238,15 @@ final class InterfaceProxier
             return new Node\Stmt\Expression($methodBody);
         }
 
-        /*
+        /**
          * @todo Use FQCN PromiseInterface::class
+         * @phpstan-ignore-next-line
          */
         if ((string) $method->getReturnType() === 'PromiseInterface') {
             $methodBody =  new Node\Expr\MethodCall(
                 new Node\Expr\Variable('this'),
                 'detectResolvedOrRejectedPromise',
-                [
-                    new Node\Arg($methodBody)
-                ]
+                [new Node\Arg($methodBody)]
             );
         }
 

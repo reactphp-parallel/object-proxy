@@ -8,11 +8,13 @@ final class Proxiers
 {
     private InterfaceProxier $direct;
     private DeferredInterfaceProxier $deferred;
+    private NoPromisesInterfacer $noPromise;
 
-    public function __construct(InterfaceProxier $direct, DeferredInterfaceProxier $deferred)
+    public function __construct(InterfaceProxier $direct, DeferredInterfaceProxier $deferred, NoPromisesInterfacer $noPromise)
     {
-        $this->direct   = $direct;
-        $this->deferred = $deferred;
+        $this->direct    = $direct;
+        $this->deferred  = $deferred;
+        $this->noPromise = $noPromise;
     }
 
     public function direct(): InterfaceProxier
@@ -23,5 +25,10 @@ final class Proxiers
     public function deferred(): DeferredInterfaceProxier
     {
         return $this->deferred;
+    }
+
+    public function noPromise(): NoPromisesInterfacer
+    {
+        return $this->noPromise;
     }
 }
