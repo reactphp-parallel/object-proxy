@@ -1,7 +1,7 @@
 {
     "name": "react-parallel/object-proxy",
     "type": "composer-plugin",
-    "description": "\ud83d\udc68\u200d\ud83d\ude80\ud83d\udef0\ud83d\udc69\u200d\ud83d\ude80 Access an object in the main thread from a ext-parallel thread without copying it over",
+    "description": "👨‍🚀🛰👩‍🚀 Access an object in the main thread from a ext-parallel thread without copying it over",
     "license": "MIT",
     "authors": [
         {
@@ -25,7 +25,9 @@
         "react-parallel/object-proxy-attributes": "^1",
         "react-parallel/react-parallel": "^1.1",
         "react-parallel/streams": "^1.0",
+        "react/cache": "^1.1",
         "react/event-loop": "^1.1",
+        "react/promise": "^2.8",
         "rx/operator-extras": "^2.1",
         "wyrihaximus/constants": "^1.6",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
@@ -52,6 +54,7 @@
                 "interfaces-to-proxy": [
                     "Psr\\Container\\ContainerInterface",
                     "Psr\\Log\\LoggerInterface",
+                    "React\\Cache\\CacheInterface",
                     "WyriHaximus\\Metrics\\Registry",
                     "WyriHaximus\\Metrics\\Registry\\Counters",
                     "WyriHaximus\\Metrics\\Registry\\Gauges",
