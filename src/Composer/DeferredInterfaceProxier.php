@@ -229,6 +229,19 @@ final class DeferredInterfaceProxier
             return new Node\Stmt\Expression($methodBody);
         }
 
+        /*
+         * @todo Use FQCN PromiseInterface::class
+         */
+        if ((string) $method->getReturnType() === 'PromiseInterface') {
+            $methodBody =  new Node\Expr\MethodCall(
+                new Node\Expr\Variable('this'),
+                'detectResolvedOrRejectedPromise',
+                [
+                    new Node\Arg($methodBody)
+                ]
+            );
+        }
+
         return new Node\Stmt\Return_($methodBody);
     }
 

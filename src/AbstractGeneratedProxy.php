@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
+use React\Promise\PromiseInterface;
 use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
@@ -16,6 +17,8 @@ use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
 use function array_key_exists;
 use function bin2hex;
 use function random_bytes;
+use function React\Promise\reject;
+use function React\Promise\resolve;
 use function spl_object_hash;
 
 abstract class AbstractGeneratedProxy extends ProxyList
@@ -168,5 +171,18 @@ abstract class AbstractGeneratedProxy extends ProxyList
     final public function setDeferredCallHandler(DeferredCallHandler $deferredCallHandler): void
     {
         $this->deferredCallHandler = $deferredCallHandler;
+    }
+
+    /**
+     * @param mixed|\Throwable $result
+     * @return PromiseInterface
+     */
+    final public function detectResolvedOrRejectedPromise($result): PromiseInterface
+    {
+        if ($result instanceof \Throwable) {
+            return reject($result);
+        }
+
+        return resolve($result);
     }
 }
