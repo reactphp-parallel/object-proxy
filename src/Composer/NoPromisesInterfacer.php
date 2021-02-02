@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Composer;
 
 use PhpParser\Node;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
 
 use function array_key_exists;
 use function count;
+use function current;
 use function implode;
 use function is_array;
 use function property_exists;
+use function substr;
 
 final class NoPromisesInterfacer
 {
@@ -126,8 +134,8 @@ final class NoPromisesInterfacer
          * @todo Use FQCN PromiseInterface::class
          * @phpstan-ignore-next-line
          */
-        if ((string) $method->getReturnType() === 'PromiseInterface') {
-            $method->returnType = null;
+        if ((string) $method->getReturnType() === 'PromiseInterface' || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 16) === 'PromiseInterface')) {
+            $method->returnType = $this->extractReturnType($method);
         }
 
         return $method;
@@ -168,5 +176,48 @@ final class NoPromisesInterfacer
             /** @phpstan-ignore-next-line  */
             $this->uses[$singleUse->alias ?? $singleUse->name->parts[count($singleUse->name->parts) - 1]] = $singleUse->name->toString();
         }
+    }
+
+    /** @phpstan-ignore-next-line  */
+    private function extractReturnType(Node\Stmt\ClassMethod $method): ?Node\Identifier
+    {
+        $type = $this->parseReturnTypeFromDocBlock($method);
+
+        if ($type === null) {
+            return null;
+        }
+
+        $genericType = $type->type;
+        if (! property_exists($genericType, 'genericTypes')) {
+            return null;
+        }
+
+        $type = (string) current($genericType->genericTypes);
+
+        if ($type === 'mixed') {
+            return null;
+        }
+
+        return new Node\Identifier($type);
+    }
+
+    /** @phpstan-ignore-next-line  */
+    private function parseReturnTypeFromDocBlock(Node\Stmt\ClassMethod $method): ?ReturnTagValueNode
+    {
+        $docblock = $method->getDocComment();
+
+        if ($docblock === null) {
+            return null;
+        }
+
+        $constExprParser = new ConstExprParser();
+        $tokens          = new TokenIterator((new Lexer())->tokenize($docblock->getText()));
+        $returnTypes     = (new PhpDocParser(new TypeParser($constExprParser), $constExprParser))->parse($tokens)->getReturnTagValues();
+
+        if (count($returnTypes) === 0) {
+            return null;
+        }
+
+        return current($returnTypes);
     }
 }
