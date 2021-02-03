@@ -161,6 +161,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
 
         $installPath                     = self::locateRootPackageInstallPath($composer->getConfig(), $composer->getPackage()) . '/src/Generated/';
         $installPathProxies              = $installPath . 'Proxies/';
+        $installPathDeferredProxies      = $installPath . 'DeferredProxies/';
         $installPathNoPromisesInterfaces = $installPath . 'Interfaces/';
         $proxies                         = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
 
@@ -188,8 +189,13 @@ final class Installer implements PluginInterface, EventSubscriberInterface
 
             file_put_contents($installPathProxies . str_replace('\\', '/', $proxiers->direct()->className()) . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->direct()->stmts()) . "\r\n");
             chmod($installPathProxies . str_replace('\\', '/', $proxiers->direct()->className()) . '.php', 0664);
-            file_put_contents($installPathProxies . $proxiers->deferred()->className() . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->deferred()->stmts()) . "\r\n");
-            chmod($installPathProxies . $proxiers->deferred()->className() . '.php', 0664);
+
+            if (! is_dir($installPathDeferredProxies . str_replace('\\', '/', $proxiers->deferred()->namespace()))) {
+                mkdir($installPathDeferredProxies . str_replace('\\', '/', $proxiers->deferred()->namespace()), 0764, true);
+            }
+
+            file_put_contents($installPathDeferredProxies . str_replace('\\', '/', $proxiers->deferred()->className()) . '.php', "<?php\r\n" . (new Standard())->prettyPrint($proxiers->deferred()->stmts()) . "\r\n");
+            chmod($installPathDeferredProxies . str_replace('\\', '/', $proxiers->deferred()->className()) . '.php', 0664);
 
             if (! in_array($proxiers->noPromise()->interfaceName(), $noPromises, true)) {
                 continue;
