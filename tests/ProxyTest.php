@@ -18,7 +18,7 @@ use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\ClosedException;
 use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
-use ReactParallel\ObjectProxy\Generated\Proxies\React\Cache\CacheInterface as React__Cache_CacheInterfaceProxy;
+use ReactParallel\ObjectProxy\Generated\Interfaces\React\Cache\CacheInterface as NoPromisesCacheInterface;
 use ReactParallel\ObjectProxy\Generated\Proxies\WyriHaximus\Metrics\Registry as WyriHaximus__Metrics_RegistryProxy;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\ObjectProxy\Proxy;
@@ -465,7 +465,7 @@ final class ProxyTest extends AsyncTestCase
 
         $returnedTime = $this->await(
         /** @phpstan-ignore-next-line */
-            $factory->call(static function (React__Cache_CacheInterfaceProxy $cache, string $toKey, string $fromKey): bool {
+            $factory->call(static function (NoPromisesCacheInterface $cache, string $toKey, string $fromKey): bool {
                 return $cache->set($toKey, $cache->get($fromKey));
             }, [$cacheProxy, $toKey, $fromKey])->always(static function () use ($factory): void {
                 $factory->lowLevelPool()->close();

@@ -8,6 +8,12 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Builder\Method;
 use PhpParser\Comment;
 use PhpParser\Node;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
 use ReactParallel\ObjectProxy\AbstractGeneratedProxy;
 use ReactParallel\ObjectProxy\Attribute\Defer;
 use ReflectionMethod;
@@ -15,11 +21,13 @@ use Traversable;
 
 use function array_key_exists;
 use function count;
+use function current;
 use function implode;
 use function is_array;
 use function iterator_to_array;
 use function property_exists;
 use function strpos;
+use function substr;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
 
@@ -40,13 +48,15 @@ final class InterfaceProxier
     private string $interfaceName = '';
     /** @var array<string, string> */
     private array $uses = [];
+    private bool $noPromises;
 
     /**
      * @param Node\Stmt[] $stmts
      */
-    public function __construct(array $stmts)
+    public function __construct(array $stmts, bool $noPromises)
     {
-        $this->stmts = $this->iterateStmts($stmts);
+        $this->noPromises = $noPromises;
+        $this->stmts      = $this->iterateStmts($stmts);
     }
 
     /**
@@ -178,7 +188,7 @@ final class InterfaceProxier
                 'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
                 'implements' => [
-                    new Node\Name(self::NAMESPACE_GLUE . $this->interfaceName),
+                    new Node\Name(($this->noPromises ? self::NAMESPACE_GLUE . implode(self::NAMESPACE_GLUE, NoPromisesInterfacer::GENERATED_NAMESPACE) : '') . self::NAMESPACE_GLUE . $this->interfaceName),
                 ],
                 'stmts' => $stmts,
             ],
@@ -210,6 +220,14 @@ final class InterfaceProxier
         $method->stmts = [
             $this->wrapMethodBody($method, $methodBody),
         ];
+
+        /**
+         * @todo Use FQCN PromiseInterface::class
+         * @phpstan-ignore-next-line
+         */
+        if ($this->noPromises && ((string) $method->getReturnType() === 'PromiseInterface' || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 16) === 'PromiseInterface'))) {
+            $method->returnType = $this->extractReturnType($method);
+        }
 
         return $method;
     }
@@ -290,5 +308,48 @@ final class InterfaceProxier
         }
 
         return (new AnnotationReader())->getMethodAnnotation(new ReflectionMethod($this->interfaceName . '::' . $method->name), Defer::class) instanceof Defer;
+    }
+
+    /** @phpstan-ignore-next-line  */
+    private function extractReturnType(Node\Stmt\ClassMethod $method): ?Node\Identifier
+    {
+        $type = $this->parseReturnTypeFromDocBlock($method);
+
+        if ($type === null) {
+            return null;
+        }
+
+        $genericType = $type->type;
+        if (! property_exists($genericType, 'genericTypes')) {
+            return null;
+        }
+
+        $type = (string) current($genericType->genericTypes);
+
+        if ($type === 'mixed') {
+            return null;
+        }
+
+        return new Node\Identifier($type);
+    }
+
+    /** @phpstan-ignore-next-line  */
+    private function parseReturnTypeFromDocBlock(Node\Stmt\ClassMethod $method): ?ReturnTagValueNode
+    {
+        $docblock = $method->getDocComment();
+
+        if ($docblock === null) {
+            return null;
+        }
+
+        $constExprParser = new ConstExprParser();
+        $tokens          = new TokenIterator((new Lexer())->tokenize($docblock->getText()));
+        $returnTypes     = (new PhpDocParser(new TypeParser($constExprParser), $constExprParser))->parse($tokens)->getReturnTagValues();
+
+        if (count($returnTypes) === 0) {
+            return null;
+        }
+
+        return current($returnTypes);
     }
 }

@@ -163,16 +163,14 @@ final class Installer implements PluginInterface, EventSubscriberInterface
         $installPathProxies              = $installPath . 'Proxies/';
         $installPathDeferredProxies      = $installPath . 'DeferredProxies/';
         $installPathNoPromisesInterfaces = $installPath . 'Interfaces/';
-        $proxies                         = self::getProxies($composer, $io, $rootPath, $composer->getPackage());
-
-        $packages   = $composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
-        $packages[] = $composer->getPackage();
-
-        $noPromises = (new Collection(array_unique(array_values((new Collection($packages))->filter(
+        $packages                        = $composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
+        $packages[]                      = $composer->getPackage();
+        $noPromises                      = (new Collection(array_unique(array_values((new Collection($packages))->filter(
             static fn (PackageInterface $package): bool => (bool) count($package->getAutoload())
         )->flatMap(
             static fn (PackageInterface $package): array => getIn($package->getExtra(), 'react-parallel.object-proxy.no-promises-interfaces', [])
         )->all()))))->toArray();
+        $proxies                         = self::getProxies($composer, $io, $rootPath, $composer->getPackage(), $noPromises);
 
         $io->write('<info>react-parallel/object-proxy:</info> Found ' . count($proxies) . ' interface(s) and generated a proxy for each of them');
 
@@ -245,9 +243,11 @@ final class Installer implements PluginInterface, EventSubscriberInterface
     }
 
     /**
+     * @param array<string> $noPromises
+     *
      * @return array<Proxiers>
      */
-    private static function getProxies(Composer $composer, IOInterface $io, string $rootPath, RootPackageInterface $rootPackage): array
+    private static function getProxies(Composer $composer, IOInterface $io, string $rootPath, RootPackageInterface $rootPackage, array $noPromises): array
     {
         $phpParser = $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7, new Emulative(['comments' => true]));
 
@@ -263,7 +263,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                 /**
                  * @return array<Proxiers>
                  */
-                static function (string $interface) use ($io, $phpParser, $rootPath, $rootPackage): array {
+                static function (string $interface) use ($io, $phpParser, $rootPath, $rootPackage, $noPromises): array {
                     $io->write(sprintf('<info>react-parallel/object-proxy:</info> Creating proxy for %s', $interface));
 
                     /**
@@ -281,8 +281,8 @@ final class Installer implements PluginInterface, EventSubscriberInterface
 
                     return [
                         new Proxiers(
-                            new InterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? []),
-                            new DeferredInterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? []),
+                            new InterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? [], in_array($interface, $noPromises, true)),
+                            new DeferredInterfaceProxier($phpParser->parse(file_get_contents($fileName)) ?? [], in_array($interface, $noPromises, true)),
                             new NoPromisesInterfacer($phpParser->parse(file_get_contents($fileName)) ?? []),
                         ),
                     ];
