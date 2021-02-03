@@ -19,7 +19,6 @@ use function implode;
 use function is_array;
 use function iterator_to_array;
 use function property_exists;
-use function str_replace;
 use function strpos;
 
 use const WyriHaximus\Constants\Boolean\FALSE_;
@@ -37,6 +36,7 @@ final class InterfaceProxier
     private array $stmts;
     private string $namespace     = '';
     private string $className     = '';
+    private string $class         = '';
     private string $interfaceName = '';
     /** @var array<string, string> */
     private array $uses = [];
@@ -90,7 +90,8 @@ final class InterfaceProxier
     private function inspectNode(Node\Stmt $node): Node\Stmt
     {
         if ($node instanceof Node\Stmt\Interface_) {
-            $this->className     = str_replace(self::NAMESPACE_GLUE, '__', $this->namespace) . '_' . $node->name . 'Proxy';
+            $this->class         = (string) $node->name;
+            $this->className     = $this->namespace . self::NAMESPACE_GLUE . $node->name;
             $this->interfaceName = $this->namespace . self::NAMESPACE_GLUE . $node->name;
         }
 
@@ -124,17 +125,28 @@ final class InterfaceProxier
 
     private function replaceNamespace(Node\Stmt\Namespace_ $namespace): Node\Stmt\Namespace_
     {
+        if ($this->namespace === '') {
+            /**
+             * @psalm-suppress PossiblyNullArgument
+             * @psalm-suppress PossiblyNullPropertyFetch
+             * @phpstan-ignore-next-line
+             */
+            $this->namespace = implode(self::NAMESPACE_GLUE, $namespace->name->parts);
+        }
+
+        $parts = self::GENERATED_NAMESPACE;
         /**
-         * @psalm-suppress PossiblyNullArgument
-         * @psalm-suppress PossiblyNullPropertyFetch
          * @phpstan-ignore-next-line
          */
-        $this->namespace = implode(self::NAMESPACE_GLUE, $namespace->name->parts);
+        foreach ($namespace->name->parts as $part) {
+            $parts[] = $part;
+        }
+
         /**
          * @psalm-suppress PossiblyNullPropertyAssignment
          * @phpstan-ignore-next-line
          */
-        $namespace->name->parts = self::GENERATED_NAMESPACE;
+        $namespace->name->parts = $parts;
         $namespace->stmts       = $this->iterateStmts($namespace->stmts);
 
         return $namespace;
@@ -161,7 +173,7 @@ final class InterfaceProxier
         )->makePublic()->makeFinal()->getNode();
 
         return new Node\Stmt\Class_(
-            $this->className,
+            $this->class,
             [
                 'extends' => new Node\Name(self::NAMESPACE_GLUE . AbstractGeneratedProxy::class),
                 'flags' => Node\Stmt\Class_::MODIFIER_FINAL,
