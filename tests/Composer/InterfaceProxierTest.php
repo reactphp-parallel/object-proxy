@@ -25,7 +25,7 @@ final class InterfaceProxierTest extends TestCase
 
         self::assertIsArray($ast);
         self::assertGreaterThan(0, $ast);
-        $interfaceProxier = new InterfaceProxier($ast);
+        $interfaceProxier = new InterfaceProxier($ast, true);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
         self::assertStringContainsString('public function inception(\ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface $edgeCase)', $code);

@@ -73,7 +73,10 @@
                     "WyriHaximus\\React\\Mutex\\Contracts\\MutexInterface"
                 ]
             }
-        }
+        },
+        "unused": [
+            "wyrihaximus/react-mutex-contracts"
+        ]
     },
     "autoload": {
         "psr-4": {
