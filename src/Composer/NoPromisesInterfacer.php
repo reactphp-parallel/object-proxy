@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Composer;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
-use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
-use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TokenIterator;
-use PHPStan\PhpDocParser\Parser\TypeParser;
+use ReactParallel\ObjectProxy\Composer\Mutators\ExtractReturnType;
+use ReactParallel\ObjectProxy\Composer\Mutators\HasObservableDocBlockReturnType;
+use ReactParallel\ObjectProxy\Composer\Mutators\HasObservableReturnType;
+use ReactParallel\ObjectProxy\Composer\Mutators\HasPromiseDocBlockReturnType;
+use ReactParallel\ObjectProxy\Composer\Mutators\HasPromiseReturnType;
+use ReactParallel\ObjectProxy\Composer\Mutators\MutateObservableReturnDocBlock;
+use ReactParallel\ObjectProxy\Composer\Mutators\MutatePromiseReturnDocBlock;
+use ReactParallel\ObjectProxy\Composer\Mutators\ParseReturnTypeFromDocBlock;
 
 use function array_key_exists;
 use function count;
-use function current;
 use function implode;
-use function in_array;
 use function is_array;
 use function property_exists;
-use function Safe\substr;
-use function str_replace;
-
-use const PHP_EOL;
 
 final class NoPromisesInterfacer
 {
@@ -136,45 +130,15 @@ final class NoPromisesInterfacer
             $this->uses[(string) $param->type] = $namespacedClassType;
         }
 
-        /**
-         * @todo Use FQCN PromiseInterface::class
-         * @phpstan-ignore-next-line
-         */
-        if ((string) $method->getReturnType() === 'PromiseInterface' || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 16) === 'PromiseInterface')) {
-            $method->returnType = $this->extractReturnType($method);
-            if ($this->parseReturnTypeFromDocBlock($method) !== null) {
-                $docblock = $method->getDocComment();
-                if ($docblock instanceof Doc) {
-                    $method->setDocComment(
-                        new Doc(
-                            str_replace(['@return PromiseInterface<', '> ', '>' . PHP_EOL], ['@return ', ' ', PHP_EOL], $docblock->getText()),
-                            $docblock->getStartLine(),
-                            $docblock->getStartFilePos(),
-                            $docblock->getStartTokenPos(),
-                            $docblock->getEndLine(),
-                            $docblock->getEndFilePos(),
-                            $docblock->getEndTokenPos(),
-                        )
-                    );
-                }
+        if (HasPromiseReturnType::has($method) || HasPromiseDocBlockReturnType::has($method)) {
+            $method->returnType = ExtractReturnType::extract($method);
+            if (ParseReturnTypeFromDocBlock::parse($method) !== null) {
+                MutatePromiseReturnDocBlock::mutate($method);
             }
-        } elseif (in_array((string) $method->getReturnType(), ['ObservableInterface', 'Observable'], true) || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 10) === 'Observable')) {
+        } elseif (HasObservableReturnType::has($method) || HasObservableDocBlockReturnType::has($method)) {
             $method->returnType = new Node\Identifier('array');
-            if ($this->parseReturnTypeFromDocBlock($method) !== null) {
-                $docblock = $method->getDocComment();
-                if ($docblock instanceof Doc) {
-                    $method->setDocComment(
-                        new Doc(
-                            str_replace(['@return ObservableInterface<', '@return Observable<'], ['@return array<', '@return array<'], $docblock->getText()),
-                            $docblock->getStartLine(),
-                            $docblock->getStartFilePos(),
-                            $docblock->getStartTokenPos(),
-                            $docblock->getEndLine(),
-                            $docblock->getEndFilePos(),
-                            $docblock->getEndTokenPos(),
-                        )
-                    );
-                }
+            if (ParseReturnTypeFromDocBlock::parse($method) !== null) {
+                MutateObservableReturnDocBlock::mutate($method);
             }
         }
 
@@ -193,15 +157,13 @@ final class NoPromisesInterfacer
         }
 
         $parts = self::GENERATED_NAMESPACE;
-        /**
-         * @phpstan-ignore-next-line
-         */
-        foreach ($namespace->name->parts as $part) {
+        foreach ($namespace->name->parts ?? [] as $part) {
             $parts[] = $part;
         }
 
         /**
          * @psalm-suppress PossiblyNullPropertyAssignment
+         * @psalm-suppress PropertyTypeCoercion
          * @phpstan-ignore-next-line
          */
         $namespace->name->parts = $parts;
@@ -216,52 +178,5 @@ final class NoPromisesInterfacer
             /** @phpstan-ignore-next-line  */
             $this->uses[$singleUse->alias ?? $singleUse->name->parts[count($singleUse->name->parts) - 1]] = $singleUse->name->toString();
         }
-    }
-
-    /** @phpstan-ignore-next-line  */
-    private function extractReturnType(Node\Stmt\ClassMethod $method): ?Node\Identifier
-    {
-        $type = $this->parseReturnTypeFromDocBlock($method);
-
-        if ($type === null) {
-            return null;
-        }
-
-        $genericType = $type->type;
-        if (! property_exists($genericType, 'genericTypes')) {
-            return null;
-        }
-
-        $type = (string) current($genericType->genericTypes);
-
-        if (current($genericType->genericTypes) instanceof GenericTypeNode) {
-            $type = (string) current($genericType->genericTypes)->type;
-        }
-
-        if ($type === 'mixed') {
-            return null;
-        }
-
-        return new Node\Identifier($type);
-    }
-
-    /** @phpstan-ignore-next-line  */
-    private function parseReturnTypeFromDocBlock(Node\Stmt\ClassMethod $method): ?ReturnTagValueNode
-    {
-        $docblock = $method->getDocComment();
-
-        if ($docblock === null) {
-            return null;
-        }
-
-        $constExprParser = new ConstExprParser();
-        $tokens          = new TokenIterator((new Lexer())->tokenize($docblock->getText()));
-        $returnTypes     = (new PhpDocParser(new TypeParser($constExprParser), $constExprParser))->parse($tokens)->getReturnTagValues();
-
-        if (count($returnTypes) === 0) {
-            return null;
-        }
-
-        return current($returnTypes);
     }
 }
