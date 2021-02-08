@@ -215,7 +215,15 @@ final class Installer implements PluginInterface, EventSubscriberInterface
                     $rootPath . '/etc/ProxyList.php'
                 )
             ),
-            var_export($interfaces, TRUE_)
+            var_export($interfaces, TRUE_),
+            var_export((static function (array $noPromises): array {
+                $map = [];
+                foreach ($noPromises as $noPromise) {
+                    $map[implode('\\', NoPromisesInterfacer::GENERATED_NAMESPACE) . '\\' . $noPromise] = $noPromise;
+                }
+
+                return $map;
+            })($noPromises), TRUE_),
         );
 
         file_put_contents($installPath . 'ProxyList.php', $classContents);
