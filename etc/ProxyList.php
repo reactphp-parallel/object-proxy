@@ -10,4 +10,7 @@ abstract class ProxyList
 {
     /** @var array<class-string, class-string> */
     protected const KNOWN_INTERFACE = ['%s'];
+
+    /** @var array<class-string, class-string> */
+    protected const NO_PROMISE_KNOWN_INTERFACE_MAP = ['%s'];
 }
