@@ -8,6 +8,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
@@ -316,6 +317,10 @@ final class DeferredInterfaceProxier
         }
 
         $type = (string) current($genericType->genericTypes);
+
+        if (current($genericType->genericTypes) instanceof GenericTypeNode) {
+            $type = (string) current($genericType->genericTypes)->type;
+        }
 
         if ($type === 'mixed') {
             return null;
