@@ -229,6 +229,9 @@ final class InterfaceProxier
         if ($this->noPromises && ((string) $method->getReturnType() === 'PromiseInterface' || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 16) === 'PromiseInterface'))) {
             $method->returnType = $this->extractReturnType($method);
         }
+        else if (in_array((string) $method->getReturnType(), ['ObservableInterface', 'Observable']) || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 10) === 'Observable')) {
+            $method->returnType = new Node\Identifier('array');
+        }
 
         return $method;
     }

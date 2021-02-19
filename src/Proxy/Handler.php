@@ -18,6 +18,7 @@ use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\Streams\Factory as StreamsFactory;
 use Rx\Observable;
+use Rx\ObservableInterface;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
 
@@ -211,6 +212,10 @@ final class Handler extends ProxyList
                 /** @psalm-suppress PossiblyFalseArgument */
                 $outcome = $this->create($outcome, $this->detectedClasses[$outcomeClass]);
             }
+        }
+
+        if ($outcome instanceof Observable) {
+            $outcome = $outcome->toArray()->toPromise();
         }
 
         if ($outcome instanceof PromiseInterface) {
