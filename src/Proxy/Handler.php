@@ -18,7 +18,6 @@ use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\Streams\Factory as StreamsFactory;
 use Rx\Observable;
-use Rx\ObservableInterface;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
 
