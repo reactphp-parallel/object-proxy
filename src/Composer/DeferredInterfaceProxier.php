@@ -6,6 +6,7 @@ namespace ReactParallel\ObjectProxy\Composer;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use PhpParser\Comment;
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
@@ -23,12 +24,15 @@ use function array_key_exists;
 use function count;
 use function current;
 use function implode;
+use function in_array;
 use function is_array;
 use function iterator_to_array;
 use function property_exists;
+use function Safe\substr;
+use function str_replace;
 use function strpos;
-use function substr;
 
+use const PHP_EOL;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 
 final class DeferredInterfaceProxier
@@ -219,9 +223,40 @@ final class DeferredInterfaceProxier
          */
         if ($this->noPromises && ((string) $method->getReturnType() === 'PromiseInterface' || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 16) === 'PromiseInterface'))) {
             $method->returnType = $this->extractReturnType($method);
-        }
-        else if (in_array((string) $method->getReturnType(), ['ObservableInterface', 'Observable']) || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 10) === 'Observable')) {
+            if ($this->parseReturnTypeFromDocBlock($method) !== null) {
+                $docblock = $method->getDocComment();
+                if ($docblock instanceof Doc) {
+                    $method->setDocComment(
+                        new Doc(
+                            str_replace(['@return PromiseInterface<', '> ', '>' . PHP_EOL], ['@return ', ' ', PHP_EOL], $docblock->getText()),
+                            $docblock->getStartLine(),
+                            $docblock->getStartFilePos(),
+                            $docblock->getStartTokenPos(),
+                            $docblock->getEndLine(),
+                            $docblock->getEndFilePos(),
+                            $docblock->getEndTokenPos(),
+                        )
+                    );
+                }
+            }
+        } elseif (in_array((string) $method->getReturnType(), ['ObservableInterface', 'Observable'], true) || ($this->parseReturnTypeFromDocBlock($method) !== null && substr((string) $this->parseReturnTypeFromDocBlock($method)->type, 0, 10) === 'Observable')) {
             $method->returnType = new Node\Identifier('array');
+            if ($this->parseReturnTypeFromDocBlock($method) !== null) {
+                $docblock = $method->getDocComment();
+                if ($docblock instanceof Doc) {
+                    $method->setDocComment(
+                        new Doc(
+                            str_replace(['@return ObservableInterface<', '@return Observable<'], ['@return array<', '@return array<'], $docblock->getText()),
+                            $docblock->getStartLine(),
+                            $docblock->getStartFilePos(),
+                            $docblock->getStartTokenPos(),
+                            $docblock->getEndLine(),
+                            $docblock->getEndFilePos(),
+                            $docblock->getEndTokenPos(),
+                        )
+                    );
+                }
+            }
         }
 
         return $method;
