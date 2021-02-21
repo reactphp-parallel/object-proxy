@@ -33,6 +33,7 @@
         "rx/operator-extras": "^2.1",
         "wyrihaximus/constants": "^1.6",
         "wyrihaximus/iterator-or-array-to-array": "^1.1",
+        "wyrihaximus/json-throwable": "^4.1",
         "wyrihaximus/metrics": "^1.0.2",
         "wyrihaximus/metrics-lazy-registry": "^1.0",
         "wyrihaximus/react-mutex-contracts": "^1.0",

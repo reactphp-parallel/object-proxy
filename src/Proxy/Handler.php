@@ -18,6 +18,7 @@ use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\Streams\Factory as StreamsFactory;
 use Rx\Observable;
+use Throwable;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry\Counters;
 
@@ -198,8 +199,14 @@ final class Handler extends ProxyList
             $this->counterCall->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
         }
 
-        /** @phpstan-ignore-next-line */
-        $outcome = $instance->object()->{$call->method()}(...$call->args());
+        try {
+            /** @phpstan-ignore-next-line */
+            $outcome = $instance->object()->{$call->method()}(...$call->args());
+        } catch (Throwable $throwable) {/** @phpstan-ignore-line */
+            $call->channel()->send(new Outcome($throwable));
+
+            return;
+        }
 
         if (is_object($outcome)) {
             $outcomeClass = get_class($outcome);
@@ -224,14 +231,14 @@ final class Handler extends ProxyList
              * @psalm-suppress MissingClosureParamType
              */
             $forwardCallable = static function ($outcome) use ($call): void {
-                $call->channel()->send($outcome);
+                $call->channel()->send(new Outcome($outcome));
             };
             $outcome->then($forwardCallable, $forwardCallable);
 
             return;
         }
 
-        $call->channel()->send($outcome);
+        $call->channel()->send(new Outcome($outcome));
     }
 
     private function handleDestruct(Destruct $destruct): void
