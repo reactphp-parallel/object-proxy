@@ -55,7 +55,7 @@ abstract class AbstractGeneratedDeferredProxy extends ProxyList
         $this->deferredCallHandler->call($call);
         $this->deferredCallHandler->commit($this->out);
 
-        $result = $input->recv();
+        $result = $input->recv()->outcome();
         $input->close();
 
         return $result;

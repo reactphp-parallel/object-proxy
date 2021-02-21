@@ -58,7 +58,7 @@ abstract class AbstractGeneratedProxy extends ProxyList
             $this->out->send($call);
         }
 
-        $result = $input->recv();
+        $result = $input->recv()->outcome();
         $input->close();
 
         return $result;
