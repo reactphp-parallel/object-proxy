@@ -37,7 +37,7 @@ stan: ## Run static analysis (PHPStan)
 	$(DOCKER_RUN) vendor/bin/phpstan analyse src tests --level max --ansi -c phpstan.neon
 
 psalm: ## Run static analysis (Psalm)
-	$(DOCKER_RUN) vendor/bin/psalm --threads=1 --shepherd --stats
+	$(DOCKER_RUN) vendor/bin/psalm --threads=$(shell nproc) --shepherd --stats
 
 unit: ## Run tests
 	$(DOCKER_RUN) vendor/bin/phpunit --colors=always -c phpunit.xml.dist --coverage-text --coverage-html covHtml --coverage-clover ./build/logs/clover.xml
