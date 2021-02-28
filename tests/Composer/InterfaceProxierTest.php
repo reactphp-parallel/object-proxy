@@ -28,6 +28,7 @@ final class InterfaceProxierTest extends TestCase
         $interfaceProxier = new InterfaceProxier($ast, true);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
-        self::assertStringContainsString('public function inception(\ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface $edgeCase)', $code);
+        self::assertStringContainsString('public function inception(EdgeCaseInterface $edgeCase)', $code);
+        self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface;', $code);
     }
 }

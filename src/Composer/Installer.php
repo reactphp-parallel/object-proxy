@@ -298,6 +298,7 @@ final class Installer implements PluginInterface, EventSubscriberInterface
             )->all();
         } catch (Throwable $throwable) { /** @phpstan-ignore-line */
             $io->write(sprintf('<info>react-parallel/object-proxy:</info> Unexpected error: <fg=red>%s</>', $throwable->getMessage()));
+            echo $throwable;
 
             return [];
         }
