@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Composer;
 
 use PhpParser\Node;
+use ReactParallel\ObjectProxy\Composer\Mutators\CreateUseUse;
+use ReactParallel\ObjectProxy\Composer\Mutators\ExtractImportsFromMethodDocBlock;
 use ReactParallel\ObjectProxy\Composer\Mutators\ExtractReturnType;
 use ReactParallel\ObjectProxy\Composer\Mutators\HasObservableDocBlockReturnType;
 use ReactParallel\ObjectProxy\Composer\Mutators\HasObservableReturnType;
@@ -13,8 +15,10 @@ use ReactParallel\ObjectProxy\Composer\Mutators\HasPromiseReturnType;
 use ReactParallel\ObjectProxy\Composer\Mutators\MutateObservableReturnDocBlock;
 use ReactParallel\ObjectProxy\Composer\Mutators\MutatePromiseReturnDocBlock;
 use ReactParallel\ObjectProxy\Composer\Mutators\ParseReturnTypeFromDocBlock;
+use stdClass;
 
 use function array_key_exists;
+use function array_unshift;
 use function count;
 use function implode;
 use function is_array;
@@ -34,15 +38,19 @@ final class NoPromisesInterfacer
     private string $namespace     = '';
     private string $className     = '';
     private string $interfaceName = '';
-    /** @var array<string, string> */
-    private array $uses = [];
+    private Node\Stmt\Use_ $uses;
+    /** @var array<string, Node\Stmt\UseUse> */
+    private array $useAliases = [];
 
     /**
      * @param Node\Stmt[] $stmts
      */
     public function __construct(array $stmts)
     {
-        $this->stmts = $this->iterateStmts($stmts);
+        $this->uses  = new Node\Stmt\Use_([
+            CreateUseUse::create(stdClass::class, 'FakeClassNameButInternallSoYouCanIgnoreThis'),
+        ]);
+        $this->stmts = $this->iterateStmtsUntilNamespace($stmts);
     }
 
     /**
@@ -77,13 +85,51 @@ final class NoPromisesInterfacer
     {
         $nodes = [];
         foreach ($stmts as $index => $node) {
-            $nodes[$index] = $this->inspectNode($node);
+            $updatedNode = $this->inspectNode($node);
+            if ($updatedNode === null) {
+                continue;
+            }
+
+            $nodes[$index] = $updatedNode;
         }
 
         return $nodes;
     }
 
-    private function inspectNode(Node\Stmt $node): Node\Stmt
+    /**
+     * @param array<Node\Stmt> $stmts
+     *
+     * @return array<Node\Stmt>
+     */
+    private function iterateStmtsUntilNamespace(array $stmts): array
+    {
+        foreach ($stmts as $index => $node) {
+            if ($node instanceof Node\Stmt\Namespace_) {
+                $node        = $this->replaceNamespace($node);
+                $node->stmts = [$this->uses, ...$node->stmts];
+                continue;
+            }
+
+            /**
+             * @psalm-suppress UndefinedPropertyFetch
+             */
+            if (! property_exists($node, 'stmts') || ! is_array($node->stmts)) {
+                continue;
+            }
+
+            /**
+             * @psalm-suppress UndefinedPropertyAssignment
+             */
+            $node->stmts = $this->iterateStmtsUntilNamespace($node->stmts);
+        }
+
+        return $stmts;
+    }
+
+    /**
+     * @phpstan-ignore-next-line
+     */
+    private function inspectNode(Node\Stmt $node): ?Node\Stmt
     {
         if ($node instanceof Node\Stmt\Interface_) {
             $this->className     = $this->namespace . self::NAMESPACE_GLUE . $node->name;
@@ -92,10 +138,13 @@ final class NoPromisesInterfacer
 
         if ($node instanceof Node\Stmt\Namespace_) {
             $node = $this->replaceNamespace($node);
+            array_unshift($node->stmts, $this->uses);
         }
 
         if ($node instanceof Node\Stmt\Use_) {
             $this->gatherUses($node);
+
+            return null;
         }
 
         /**
@@ -121,13 +170,16 @@ final class NoPromisesInterfacer
         }
 
         foreach ($method->getParams() as $param) {
-            if (! ($param->type instanceof Node\Name) || array_key_exists((string) $param->type, $this->uses)) {
+            if (! ($param->type instanceof Node\Name) || array_key_exists((string) $param->type, $this->uses->uses)) {
                 continue;
             }
 
-            $namespacedClassType               = self::NAMESPACE_GLUE . $this->namespace . self::NAMESPACE_GLUE . (string) $param->type;
-            $param->type                       = new Node\Name($namespacedClassType);
-            $this->uses[(string) $param->type] = $namespacedClassType;
+            $namespacedClassType = self::NAMESPACE_GLUE . $this->namespace . self::NAMESPACE_GLUE . (string) $param->type;
+            if (array_key_exists((string) $param->type, $this->useAliases)) {
+                continue;
+            }
+
+            $this->uses->uses[$namespacedClassType] = CreateUseUse::create($namespacedClassType, null);
         }
 
         if (HasPromiseReturnType::has($method) || HasPromiseDocBlockReturnType::has($method)) {
@@ -135,10 +187,26 @@ final class NoPromisesInterfacer
             if (ParseReturnTypeFromDocBlock::parse($method) !== null) {
                 MutatePromiseReturnDocBlock::mutate($method);
             }
+
+            foreach (ExtractImportsFromMethodDocBlock::extract($method, $this->namespace) as $alias => $fqcn) {
+                if (array_key_exists($alias, $this->useAliases)) {
+                    continue;
+                }
+
+                $this->uses->uses[$fqcn] = CreateUseUse::create($fqcn, $alias);
+            }
         } elseif (HasObservableReturnType::has($method) || HasObservableDocBlockReturnType::has($method)) {
             $method->returnType = new Node\Identifier('array');
             if (ParseReturnTypeFromDocBlock::parse($method) !== null) {
                 MutateObservableReturnDocBlock::mutate($method);
+            }
+
+            foreach (ExtractImportsFromMethodDocBlock::extract($method, $this->namespace) as $alias => $fqcn) {
+                if (array_key_exists($alias, $this->useAliases)) {
+                    continue;
+                }
+
+                $this->uses->uses[$fqcn] = CreateUseUse::create($fqcn, $alias);
             }
         }
 
@@ -175,8 +243,9 @@ final class NoPromisesInterfacer
     private function gatherUses(Node\Stmt\Use_ $use): void
     {
         foreach ($use->uses as $singleUse) {
-            /** @phpstan-ignore-next-line  */
-            $this->uses[$singleUse->alias ?? $singleUse->name->parts[count($singleUse->name->parts) - 1]] = $singleUse->name->toString();
+            $alias                                       = (string) ($singleUse->alias ?? $singleUse->name->parts[count($singleUse->name->parts) - 1]);
+            $this->uses->uses[(string) $singleUse->name] = CreateUseUse::create((string) $singleUse->name, $singleUse->alias !== null ? (string) $singleUse->alias : null);
+            $this->useAliases[$alias]                    = $this->uses->uses[(string) $singleUse->name];
         }
     }
 }
