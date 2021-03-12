@@ -6,14 +6,14 @@ namespace ReactParallel\Tests\ObjectProxy\Composer;
 
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
-use ReactParallel\ObjectProxy\Composer\InterfaceProxier;
+use ReactParallel\ObjectProxy\Composer\DeferredInterfaceProxier;
 use WyriHaximus\TestUtilities\TestCase;
 
 use function Safe\file_get_contents;
 
 use const DIRECTORY_SEPARATOR;
 
-final class InterfaceProxierTest extends TestCase
+final class DeferredInterfaceProxierTest extends TestCase
 {
     /**
      * @test
@@ -25,7 +25,7 @@ final class InterfaceProxierTest extends TestCase
 
         self::assertIsArray($ast);
         self::assertGreaterThan(0, $ast);
-        $interfaceProxier = new InterfaceProxier($ast, false);
+        $interfaceProxier = new DeferredInterfaceProxier($ast, false);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
         self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface;', $code);
@@ -45,7 +45,7 @@ final class InterfaceProxierTest extends TestCase
 
         self::assertIsArray($ast);
         self::assertGreaterThan(0, $ast);
-        $interfaceProxier = new InterfaceProxier($ast, true);
+        $interfaceProxier = new DeferredInterfaceProxier($ast, true);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
         self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface;', $code);
