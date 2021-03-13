@@ -28,10 +28,10 @@ final class DeferredInterfaceProxierTest extends TestCase
         $interfaceProxier = new DeferredInterfaceProxier($ast, false);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
-        self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface;', $code);
-        self::assertStringContainsString('* @return Observable<EdgeCaseInterface>', $code);
+        self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface, ReactParallel\Tests\ObjectProxy\Composer\SameClassInTheSameNamespace;', $code);
+        self::assertStringContainsString('* @return Observable<SameClassInTheSameNamespace>', $code);
         self::assertStringContainsString('public function inception(EdgeCaseInterface $edgeCase) : Observable', $code);
-        self::assertStringContainsString('* @return PromiseInterface<EdgeCaseInterface>', $code);
+        self::assertStringContainsString('* @return PromiseInterface<SameClassInTheSameNamespace>', $code);
         self::assertStringContainsString('public function noPromises(EdgeCaseInterface $edgeCase) : PromiseInterface', $code);
     }
 
@@ -48,10 +48,10 @@ final class DeferredInterfaceProxierTest extends TestCase
         $interfaceProxier = new DeferredInterfaceProxier($ast, true);
         $code             = (new Standard())->prettyPrint($interfaceProxier->stmts());
 
-        self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface;', $code);
-        self::assertStringContainsString('* @return array<EdgeCaseInterface>', $code);
+        self::assertStringContainsString('use stdClass as FakeClassNameButInternallSoYouCanIgnoreThis, React\Promise\PromiseInterface, Rx\Observable, \ReactParallel\Tests\ObjectProxy\Composer\EdgeCaseInterface, ReactParallel\Tests\ObjectProxy\Composer\SameClassInTheSameNamespace;', $code);
+        self::assertStringContainsString('* @return array<SameClassInTheSameNamespace>', $code);
         self::assertStringContainsString('public function inception(EdgeCaseInterface $edgeCase) : array', $code);
-        self::assertStringContainsString('* @return EdgeCaseInterface', $code);
-        self::assertStringContainsString('public function noPromises(EdgeCaseInterface $edgeCase) : EdgeCaseInterface', $code);
+        self::assertStringContainsString('* @return SameClassInTheSameNamespace', $code);
+        self::assertStringContainsString('public function noPromises(EdgeCaseInterface $edgeCase) : SameClassInTheSameNamespace', $code);
     }
 }
