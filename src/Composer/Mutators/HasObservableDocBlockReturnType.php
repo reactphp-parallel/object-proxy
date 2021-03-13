@@ -17,11 +17,6 @@ final class HasObservableDocBlockReturnType
             return false;
         }
 
-//        $type = $type->type;
-//        if ($type === null) {
-//            return false;
-//        }
-
         return substr((string) $type->type, 0, 10) === 'Observable';
     }
 }

@@ -10,14 +10,14 @@ use Rx\Observable;
 interface EdgeCaseInterface
 {
     /**
-     * @return Observable<EdgeCaseInterface>
+     * @return Observable<SameClassInTheSameNamespace>
      *
      * @phpstan-ignore-next-line
      */
     public function inception(EdgeCaseInterface $edgeCase): Observable;
 
     /**
-     * @return PromiseInterface<EdgeCaseInterface>
+     * @return PromiseInterface<SameClassInTheSameNamespace>
      *
      * @phpstan-ignore-next-line
      */

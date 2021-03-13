@@ -25,8 +25,10 @@ use Traversable;
 
 use function array_key_exists;
 use function array_unshift;
+use function class_exists;
 use function count;
 use function implode;
+use function interface_exists;
 use function is_array;
 use function iterator_to_array;
 use function property_exists;
@@ -288,6 +290,14 @@ final class DeferredInterfaceProxier
                 }
 
                 $this->uses->uses[$fqcn] = CreateUseUse::create($fqcn, $alias);
+            }
+        }
+
+        $returnType = ExtractReturnType::extract($method);
+        if ($returnType !== null) {
+            $possibleSameNamespaceClass = $this->namespace . self::NAMESPACE_GLUE . (string) $returnType;
+            if ((class_exists($possibleSameNamespaceClass) || interface_exists($possibleSameNamespaceClass)) && ! array_key_exists((string) $returnType, $this->useAliases)) {
+                $this->uses->uses[$possibleSameNamespaceClass] = CreateUseUse::create($possibleSameNamespaceClass, null);
             }
         }
 
