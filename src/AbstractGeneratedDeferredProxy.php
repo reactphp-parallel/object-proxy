@@ -6,7 +6,6 @@ namespace ReactParallel\ObjectProxy;
 
 use parallel\Channel;
 use React\Promise\PromiseInterface;
-use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
@@ -20,15 +19,17 @@ use function React\Promise\reject;
 use function React\Promise\resolve;
 use function spl_object_hash;
 
-abstract class AbstractGeneratedDeferredProxy extends ProxyList
+abstract class AbstractGeneratedDeferredProxy
 {
+    private ProxyListInterface $proxyList;
     private Channel $out;
     private string $hash;
     private Link $link;
     private DeferredCallHandler $deferredCallHandler;
 
-    final public function __construct(Channel $out, DeferredCallHandler $deferredCallHandler, string $hash, Link $link)
+    final public function __construct(ProxyListInterface $proxyList, Channel $out, DeferredCallHandler $deferredCallHandler, string $hash, Link $link)
     {
+        $this->proxyList           = $proxyList;
         $this->out                 = $out;
         $this->deferredCallHandler = $deferredCallHandler;
         $this->hash                = $hash;
@@ -68,15 +69,16 @@ abstract class AbstractGeneratedDeferredProxy extends ProxyList
      */
     final protected function createDeferredProxy(string $method, array $args, string $interface)
     {
-        if (! array_key_exists($interface, self::KNOWN_INTERFACE)) {
+        if (! array_key_exists($interface, $this->proxyList->knownInterfaces())) {
             return $this->proxyCallToMainThread($method, $args);
         }
 
         /** @psalm-suppress EmptyArrayAccess */
-        $class = self::KNOWN_INTERFACE[$interface]['deferred'];
+        $class = $this->proxyList->knownInterfaces()[$interface]['deferred'];
 
         /** @psalm-suppress InvalidStringClass */
         return new $class(
+            $this->proxyList,
             $this->out,
             $this->deferredCallHandler,
             static::class . '___' . bin2hex(random_bytes(13)),

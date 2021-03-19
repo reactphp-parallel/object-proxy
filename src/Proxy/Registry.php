@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Proxy;
 
 use parallel\Channel;
-use ReactParallel\ObjectProxy\Generated\ProxyList;
+use ReactParallel\ObjectProxy\ProxyListInterface;
 
 use function array_key_exists;
 use function bin2hex;
@@ -14,10 +14,11 @@ use function random_bytes;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 
-final class Registry extends ProxyList
+final class Registry
 {
     private const RANDOM_BYTES_LENGTH = 13;
 
+    private ProxyListInterface $proxyList;
     private Channel $in;
 
     /** @var array<string, Instance> */
@@ -26,9 +27,10 @@ final class Registry extends ProxyList
     /** @var array<string, string> */
     private array $shared = [];
 
-    public function __construct(Channel $in, Instance ...$instances)
+    public function __construct(ProxyListInterface $proxyList, Channel $in, Instance ...$instances)
     {
-        $this->in = $in;
+        $this->proxyList = $proxyList;
+        $this->in        = $in;
         foreach ($instances as $instance) {
             $this->instances[$instance->hash()] = $instance;
             if (! $instance->isLocked()) {
@@ -66,7 +68,7 @@ final class Registry extends ProxyList
 
     public function create(object $object, string $interface): Instance
     {
-        $instance                           = new Instance($object, $interface, FALSE_, $this->in);
+        $instance                           = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
         $this->instances[$instance->hash()] = $instance;
 
         return $instance;
@@ -74,7 +76,7 @@ final class Registry extends ProxyList
 
     public function share(object $object, string $interface): Instance
     {
-        $instance                           = new Instance($object, $interface, TRUE_, $this->in);
+        $instance                           = new Instance($this->proxyList, $object, $interface, TRUE_, $this->in);
         $this->instances[$instance->hash()] = $instance;
         $this->shared[$interface]           = $instance->hash();
 
@@ -83,7 +85,7 @@ final class Registry extends ProxyList
 
     public function thread(object $object, string $interface, Channel $in): Instance
     {
-        $instance                           = new Instance($object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
+        $instance                           = new Instance($this->proxyList, $object, $interface, TRUE_, $in, bin2hex(random_bytes(self::RANDOM_BYTES_LENGTH)));
         $this->instances[$instance->hash()] = $instance;
         $this->shared[$interface]           = $instance->hash();
 

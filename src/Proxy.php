@@ -10,7 +10,6 @@ use React\EventLoop\StreamSelectLoop;
 use ReactParallel\EventLoop\EventLoopBridge;
 use ReactParallel\Factory;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
-use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Proxy\Handler;
 use ReactParallel\ObjectProxy\Proxy\Instance;
 use ReactParallel\ObjectProxy\Proxy\Registry;
@@ -26,11 +25,12 @@ use function unserialize;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 
-final class Proxy extends ProxyList
+final class Proxy
 {
     private const HASNT_PROXYABLE_INTERFACE = false;
 
     private Factory $factory;
+    private ProxyListInterface $proxyList;
     private Channel $in;
     private Registry $registry;
     private ?Counters $counterCreate = null;
@@ -42,10 +42,11 @@ final class Proxy extends ProxyList
 
     public function __construct(Configuration $configuration)
     {
-        $this->factory  = $configuration->factory();
-        $this->in       = new Channel(Channel::Infinite);
-        $this->registry = new Registry($this->in);
-        new Handler($this->in, $this->factory->loop(), $this->factory->streams(), $this->registry, $configuration->metrics());
+        $this->factory   = $configuration->factory();
+        $this->proxyList = $configuration->proxyList();
+        $this->in        = new Channel(Channel::Infinite);
+        $this->registry  = new Registry($this->proxyList, $this->in);
+        new Handler($this->proxyList, $this->in, $this->factory->loop(), $this->factory->streams(), $this->registry, $configuration->metrics());
         $metrics = $configuration->metrics();
         if (! ($metrics instanceof Metrics)) {
             return;
@@ -60,7 +61,7 @@ final class Proxy extends ProxyList
             throw ClosedException::create();
         }
 
-        return array_key_exists($interface, self::KNOWN_INTERFACE);
+        return array_key_exists($interface, $this->proxyList->knownInterfaces());
     }
 
     public function share(object $object, string $interface): object
@@ -132,13 +133,13 @@ final class Proxy extends ProxyList
 
         $this->factory->call(
             /** @phpstan-ignore-next-line */
-            static function (string $object, string $interface, string $hash, Channel $in, Channel $destruct, ?Metrics $metrics = null): void {
+            static function (string $object, string $interface, string $hash, ProxyListInterface $proxyList, Channel $in, Channel $destruct, ?Metrics $metrics = null): void {
                 $object        = unserialize($object);
-                $instance      = new Instance($object, $interface, TRUE_, $in, $hash);
+                $instance      = new Instance($proxyList, $object, $interface, TRUE_, $in, $hash);
                 $eventLoop     = new StreamSelectLoop();
                 $streamFactory = new StreamsFactory(new EventLoopBridge($eventLoop));
-                $registry      = new Registry($in, $instance);
-                new Handler($in, $eventLoop, $streamFactory, $registry, $object instanceof MetricsRegistry ? Metrics::create($object) : $metrics);
+                $registry      = new Registry($proxyList, $in, $instance);
+                new Handler($proxyList, $in, $eventLoop, $streamFactory, $registry, $object instanceof MetricsRegistry ? Metrics::create($object) : $metrics);
 
                 $stop = static function () use ($eventLoop): void {
                     $eventLoop->stop();
@@ -151,6 +152,7 @@ final class Proxy extends ProxyList
                 serialize($object),
                 $interface,
                 $instance->hash(),
+                $this->proxyList,
                 $in,
                 $destruct,
                 $metrics,
