@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Proxy;
 
+use Evenement\EventEmitterInterface;
+use Evenement\EventEmitterTrait;
 use parallel\Channel;
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
@@ -33,8 +35,10 @@ use function WyriHaximus\iteratorOrArrayToArray;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Numeric\ZERO;
 
-final class Handler
+final class Handler implements EventEmitterInterface
 {
+    use EventEmitterTrait;
+
     private const DESTRUCT_DEFERENCE_SECONDS = 10;
     private const HASNT_PROXYABLE_INTERFACE  = false;
 
@@ -168,8 +172,12 @@ final class Handler
             $this->counterNotify->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
         }
 
-        /** @phpstan-ignore-next-line */
-        $instance->object()->{$notify->method()}(...$notify->args());
+        try {
+            /** @phpstan-ignore-next-line */
+            $instance->object()->{$notify->method()}(...$notify->args());
+        } catch (Throwable $throwable) {/** @phpstan-ignore-line */
+            $this->emit('error', [$throwable]);
+        }
     }
 
     private function handleCall(Call $call): void

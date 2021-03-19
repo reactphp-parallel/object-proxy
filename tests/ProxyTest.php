@@ -23,6 +23,7 @@ use ReactParallel\ObjectProxy\Generated\Proxies\WyriHaximus\Metrics\Registry as 
 use ReactParallel\ObjectProxy\NonExistentInterface;
 use ReactParallel\ObjectProxy\Proxy;
 use stdClass;
+use Throwable;
 use WyriHaximus\AsyncTestUtilities\AsyncTestCase;
 use WyriHaximus\Metrics\Configuration as MetricsConfiguration;
 use WyriHaximus\Metrics\InMemory\Registry as InMemmoryRegistry;
@@ -474,5 +475,44 @@ final class ProxyTest extends AsyncTestCase
         );
 
         self::assertSame($time, $returnedTime);
+    }
+
+    /**
+     * @test
+     */
+    public function notifyThrows(): void
+    {
+        $errors  = [];
+        $loop    = EventLoopFactory::create();
+        $factory = new Factory($loop);
+        $proxy   = new Proxy(new Configuration($factory));
+        $proxy->on('error', static function (Throwable $throwable) use (&$errors): void {
+            $errors[] = $throwable;
+        });
+        $loggerStub  = new ThrowingLoggerStub();
+        $logger      = new Logger(
+            'stub',
+            [$loggerStub],
+        );
+        $loggerProxy = $proxy->create($logger, LoggerInterface::class);
+        $time        = time();
+
+        $returnedTime = $this->await(
+        /** @phpstan-ignore-next-line */
+            $factory->call(static function (LoggerInterface $logger, int $time): int {
+                $logger->debug((string) $time);
+
+                return $time;
+            }, [$loggerProxy, $time])->always(static function () use ($factory): void {
+                $factory->lowLevelPool()->close();
+            }),
+            $loop
+        );
+
+        self::assertSame($time, $returnedTime);
+        self::assertCount(1, $errors);
+        foreach ($errors as $error) {
+            self::assertStringContainsString('Tree!', (string) $error);
+        }
     }
 }
