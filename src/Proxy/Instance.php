@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace ReactParallel\ObjectProxy\Proxy;
 
 use parallel\Channel;
-use ReactParallel\ObjectProxy\Generated\ProxyList;
+use ReactParallel\ObjectProxy\ProxyListInterface;
 
 use function count;
 use function get_class;
 use function spl_object_hash;
 
-final class Instance extends ProxyList
+final class Instance
 {
+    private ProxyListInterface $proxyList;
     private object $object;
     private string $class;
     private string $interface;
@@ -25,8 +26,9 @@ final class Instance extends ProxyList
     private string $hash;
 
     /** @phpstan-ignore-next-line */
-    public function __construct(object $object, string $interface, bool $locked, Channel $in, ?string $hash = null)
+    public function __construct(ProxyListInterface $proxyList, object $object, string $interface, bool $locked, Channel $in, ?string $hash = null)
     {
+        $this->proxyList = $proxyList;
         $this->object    = $object;
         $this->class     = get_class($object);
         $this->interface = $interface;
@@ -77,9 +79,9 @@ final class Instance extends ProxyList
         /**
          * @psalm-suppress EmptyArrayAccess
          */
-        $class = self::KNOWN_INTERFACE[$this->interface]['direct'];
+        $class = $this->proxyList->knownInterfaces()[$this->interface]['direct'];
 
         /** @psalm-suppress InvalidStringClass */
-        return new $class($this->in, $this->hash);
+        return new $class($this->proxyList, $this->in, $this->hash);
     }
 }

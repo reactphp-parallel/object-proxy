@@ -16,7 +16,6 @@ parameters:
 			- Exception
 			- RuntimeException
 			- Monolog\Handler\AbstractHandler
-			- ReactParallel\ObjectProxy\Generated\ProxyList
 
 includes:
 	- vendor/wyrihaximus/async-test-utilities/rules.neon

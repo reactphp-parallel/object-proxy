@@ -8,7 +8,6 @@ use parallel\Channel;
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
-use ReactParallel\ObjectProxy\Generated\ProxyList;
 use ReactParallel\ObjectProxy\Message\Call;
 use ReactParallel\ObjectProxy\Message\Destruct;
 use ReactParallel\ObjectProxy\Message\Existence;
@@ -16,6 +15,7 @@ use ReactParallel\ObjectProxy\Message\Link;
 use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Message\Parcel;
 use ReactParallel\ObjectProxy\NonExistentInterface;
+use ReactParallel\ObjectProxy\ProxyListInterface;
 use ReactParallel\Streams\Factory as StreamsFactory;
 use Rx\Observable;
 use Throwable;
@@ -33,11 +33,12 @@ use function WyriHaximus\iteratorOrArrayToArray;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Numeric\ZERO;
 
-final class Handler extends ProxyList
+final class Handler
 {
     private const DESTRUCT_DEFERENCE_SECONDS = 10;
     private const HASNT_PROXYABLE_INTERFACE  = false;
 
+    private ProxyListInterface $proxyList;
     private Channel $in;
     private LoopInterface $loop;
     private StreamsFactory $factory;
@@ -50,12 +51,13 @@ final class Handler extends ProxyList
     private array $detectedClasses = [];
 
     /** @phpstan-ignore-next-line */
-    public function __construct(Channel $in, LoopInterface $loop, StreamsFactory $factory, Registry $registry, ?Metrics $metrics = null)
+    public function __construct(ProxyListInterface $proxyList, Channel $in, LoopInterface $loop, StreamsFactory $factory, Registry $registry, ?Metrics $metrics = null)
     {
-        $this->in       = $in;
-        $this->loop     = $loop;
-        $this->factory  = $factory;
-        $this->registry = $registry;
+        $this->proxyList = $proxyList;
+        $this->in        = $in;
+        $this->loop      = $loop;
+        $this->factory   = $factory;
+        $this->registry  = $registry;
 
         if ($metrics instanceof Metrics) {
             $this->counterCreate   = $metrics->createCounter();
@@ -78,7 +80,7 @@ final class Handler extends ProxyList
 
     private function create(object $object, string $interface): object
     {
-        if (array_key_exists($interface, self::KNOWN_INTERFACE) === self::HASNT_PROXYABLE_INTERFACE) {
+        if (array_key_exists($interface, $this->proxyList->knownInterfaces()) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
         }
 
@@ -156,7 +158,7 @@ final class Handler extends ProxyList
                 return;
             }
 
-            $instance = new Instance($object, $interface, FALSE_, $this->in);
+            $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
         } else {
             $instance = $this->registry->getByHash($notify->hash());
             $instance->reference($notify->objectHash());
@@ -189,7 +191,7 @@ final class Handler extends ProxyList
                 return;
             }
 
-            $instance = new Instance($object, $interface, FALSE_, $this->in);
+            $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
         } else {
             $instance = $this->registry->getByHash($call->hash());
             $instance->reference($call->objectHash());
@@ -275,7 +277,7 @@ final class Handler extends ProxyList
     /** @phpstan-ignore-next-line */
     private function getInterfaceForOutcome(object $outcome): ?string
     {
-        foreach (self::KNOWN_INTERFACE as $interface => $proxy) {
+        foreach ($this->proxyList->knownInterfaces() as $interface => $proxy) {
             if ($outcome instanceof $interface) {
                 return $interface;
             }
