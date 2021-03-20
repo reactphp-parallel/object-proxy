@@ -21,12 +21,25 @@ final class ConfigurationTest extends AsyncTestCase
         $parallelFactory   = new ParallelFactory($loop);
         $baseConfiguration = new Configuration($parallelFactory);
         $proxyList         = new class () implements ProxyListInterface {
+            public function has(string $interface): bool
+            {
+                return false;
+            }
+
             /**
              * @inheritDoc
              */
-            public function knownInterfaces(): array
+            public function get(string $interface): array
             {
                 return [];
+            }
+
+            /**
+             * @inheritDoc
+             */
+            public function interfaces(): iterable
+            {
+                yield from [];
             }
 
             /**

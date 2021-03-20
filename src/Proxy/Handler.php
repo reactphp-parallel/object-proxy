@@ -84,7 +84,7 @@ final class Handler implements EventEmitterInterface
 
     private function create(object $object, string $interface): object
     {
-        if (array_key_exists($interface, $this->proxyList->knownInterfaces()) === self::HASNT_PROXYABLE_INTERFACE) {
+        if ($this->proxyList->has($interface) === self::HASNT_PROXYABLE_INTERFACE) {
             throw NonExistentInterface::create($interface);
         }
 
@@ -285,7 +285,7 @@ final class Handler implements EventEmitterInterface
     /** @phpstan-ignore-next-line */
     private function getInterfaceForOutcome(object $outcome): ?string
     {
-        foreach ($this->proxyList->knownInterfaces() as $interface => $proxy) {
+        foreach ($this->proxyList->interfaces() as $interface) {
             if ($outcome instanceof $interface) {
                 return $interface;
             }

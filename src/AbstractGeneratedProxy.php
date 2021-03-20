@@ -14,7 +14,6 @@ use ReactParallel\ObjectProxy\Message\Notify;
 use ReactParallel\ObjectProxy\Proxy\DeferredCallHandler;
 use Throwable;
 
-use function array_key_exists;
 use function bin2hex;
 use function random_bytes;
 use function React\Promise\reject;
@@ -72,12 +71,12 @@ abstract class AbstractGeneratedProxy
      */
     final protected function createDeferredProxy(string $method, array $args, string $interface)
     {
-        if (! array_key_exists($interface, $this->proxyList->knownInterfaces()) || ! ($this->deferredCallHandler instanceof DeferredCallHandler)) {
+        if (! $this->proxyList->has($interface) || ! ($this->deferredCallHandler instanceof DeferredCallHandler)) {
             return $this->proxyCallToMainThread($method, $args);
         }
 
         /** @psalm-suppress EmptyArrayAccess */
-        $class = $this->proxyList->knownInterfaces()[$interface]['deferred'];
+        $class = $this->proxyList->get($interface)['deferred'];
 
         /** @psalm-suppress InvalidStringClass */
         return new $class(
