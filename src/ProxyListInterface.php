@@ -6,10 +6,17 @@ namespace ReactParallel\ObjectProxy;
 
 interface ProxyListInterface
 {
+    public function has(string $interface): bool;
+
     /**
-     * @return array<string, array<string, string>>
+     * @return array<string, string>
      */
-    public function knownInterfaces(): array;
+    public function get(string $interface): array;
+
+    /**
+     * @return iterable<string>
+     */
+    public function interfaces(): iterable;
 
     /**
      * @return array<string, string>

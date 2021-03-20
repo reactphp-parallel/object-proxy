@@ -21,7 +21,6 @@ use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry as MetricsRegistry;
 use WyriHaximus\Metrics\Registry\Counters;
 
-use function array_key_exists;
 use function serialize;
 use function unserialize;
 
@@ -70,7 +69,7 @@ final class Proxy implements EventEmitterInterface
             throw ClosedException::create();
         }
 
-        return array_key_exists($interface, $this->proxyList->knownInterfaces());
+        return $this->proxyList->has($interface);
     }
 
     public function share(object $object, string $interface): object
