@@ -16,6 +16,7 @@
         "composer-plugin-api": "^2",
         "api-clients/rx": "^2.2",
         "doctrine/annotations": "^1.11",
+        "evenement/evenement": "^3.0",
         "igorw/get-in": "^1.0",
         "illuminate/collections": "^8.18",
         "nikic/php-parser": "^4.9",

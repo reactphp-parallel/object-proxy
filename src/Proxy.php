@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy;
 
+use Evenement\EventEmitterInterface;
+use Evenement\EventEmitterTrait;
 use parallel\Channel;
 use parallel\Channel\Error\Closed;
 use React\EventLoop\StreamSelectLoop;
@@ -14,6 +16,7 @@ use ReactParallel\ObjectProxy\Proxy\Handler;
 use ReactParallel\ObjectProxy\Proxy\Instance;
 use ReactParallel\ObjectProxy\Proxy\Registry;
 use ReactParallel\Streams\Factory as StreamsFactory;
+use Throwable;
 use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Registry as MetricsRegistry;
 use WyriHaximus\Metrics\Registry\Counters;
@@ -25,8 +28,10 @@ use function unserialize;
 use const WyriHaximus\Constants\Boolean\FALSE_;
 use const WyriHaximus\Constants\Boolean\TRUE_;
 
-final class Proxy
+final class Proxy implements EventEmitterInterface
 {
+    use EventEmitterTrait;
+
     private const HASNT_PROXYABLE_INTERFACE = false;
 
     private Factory $factory;
@@ -46,7 +51,11 @@ final class Proxy
         $this->proxyList = $configuration->proxyList();
         $this->in        = new Channel(Channel::Infinite);
         $this->registry  = new Registry($this->proxyList, $this->in);
-        new Handler($this->proxyList, $this->in, $this->factory->loop(), $this->factory->streams(), $this->registry, $configuration->metrics());
+        (
+            new Handler($this->proxyList, $this->in, $this->factory->loop(), $this->factory->streams(), $this->registry, $configuration->metrics())
+        )->on('error', function (Throwable $throwable): void {
+            $this->emit('error', [$throwable]);
+        });
         $metrics = $configuration->metrics();
         if (! ($metrics instanceof Metrics)) {
             return;
