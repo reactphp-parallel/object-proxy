@@ -149,30 +149,30 @@ final class Handler implements EventEmitterInterface
             return;
         }
 
-        if ($notify->link() instanceof Link) {
-            $object = $this->followChain($notify->link());
-
-            if ($object === null) {
-                return;
-            }
-
-            $interface = $this->getInterfaceForOutcome($object);
-
-            if ($interface === null) {
-                return;
-            }
-
-            $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
-        } else {
-            $instance = $this->registry->getByHash($notify->hash());
-            $instance->reference($notify->objectHash());
-        }
-
-        if ($this->counterNotify instanceof Counters) {
-            $this->counterNotify->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
-        }
-
         try {
+            if ($notify->link() instanceof Link) {
+                $object = $this->followChain($notify->link());
+
+                if ($object === null) {
+                    return;
+                }
+
+                $interface = $this->getInterfaceForOutcome($object);
+
+                if ($interface === null) {
+                    return;
+                }
+
+                $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
+            } else {
+                $instance = $this->registry->getByHash($notify->hash());
+                $instance->reference($notify->objectHash());
+            }
+
+            if ($this->counterNotify instanceof Counters) {
+                $this->counterNotify->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
+            }
+
             /** @phpstan-ignore-next-line */
             $instance->object()->{$notify->method()}(...$notify->args());
         } catch (Throwable $throwable) {/** @phpstan-ignore-line */
@@ -186,30 +186,30 @@ final class Handler implements EventEmitterInterface
             return;
         }
 
-        if ($call->link() instanceof Link) {
-            $object = $this->followChain($call->link());
-
-            if ($object === null) {
-                return;
-            }
-
-            $interface = $this->getInterfaceForOutcome($object);
-
-            if ($interface === null) {
-                return;
-            }
-
-            $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
-        } else {
-            $instance = $this->registry->getByHash($call->hash());
-            $instance->reference($call->objectHash());
-        }
-
-        if ($this->counterCall instanceof Counters) {
-            $this->counterCall->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
-        }
-
         try {
+            if ($call->link() instanceof Link) {
+                $object = $this->followChain($call->link());
+
+                if ($object === null) {
+                    return;
+                }
+
+                $interface = $this->getInterfaceForOutcome($object);
+
+                if ($interface === null) {
+                    return;
+                }
+
+                $instance = new Instance($this->proxyList, $object, $interface, FALSE_, $this->in);
+            } else {
+                $instance = $this->registry->getByHash($call->hash());
+                $instance->reference($call->objectHash());
+            }
+
+            if ($this->counterCall instanceof Counters) {
+                $this->counterCall->counter(new Label('class', $instance->class()), new Label('interface', $instance->interface()))->incr();
+            }
+
             /** @phpstan-ignore-next-line */
             $outcome = $instance->object()->{$call->method()}(...$call->args());
         } catch (Throwable $throwable) {/** @phpstan-ignore-line */
