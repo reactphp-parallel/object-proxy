@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy;
 
+use ReactParallel\ObjectProxy\ProxyList\Proxy;
+
 interface ProxyListInterface
 {
     public function has(string $interface): bool;
 
-    /**
-     * @return array<string, string>
-     */
-    public function get(string $interface): array;
+    public function get(string $interface): Proxy;
 
     /**
      * @return iterable<string>

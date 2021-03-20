@@ -109,6 +109,7 @@
                 "ReactParallel\\ObjectProxy\\NonExistentInterface::interface",
                 "ReactParallel\\ObjectProxy\\Message\\Link::objectHash",
                 "ReactParallel\\ObjectProxy\\Message\\Parcel::notify",
+                "ReactParallel\\ObjectProxy\\ProxyList\\Proxy::deferred",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::interface",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::dereference",
                 "ReactParallel\\ObjectProxy\\Proxy\\Instance::isLocked",
