@@ -79,7 +79,7 @@ final class Instance
         /**
          * @psalm-suppress EmptyArrayAccess
          */
-        $class = $this->proxyList->get($this->interface)['direct'];
+        $class = $this->proxyList->get($this->interface)->direct();
 
         /** @psalm-suppress InvalidStringClass */
         return new $class($this->proxyList, $this->in, $this->hash);

@@ -76,7 +76,7 @@ abstract class AbstractGeneratedProxy
         }
 
         /** @psalm-suppress EmptyArrayAccess */
-        $class = $this->proxyList->get($interface)['deferred'];
+        $class = $this->proxyList->get($interface)->deferred();
 
         /** @psalm-suppress InvalidStringClass */
         return new $class(

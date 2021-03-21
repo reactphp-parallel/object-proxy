@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Generated;
 
+use ReactParallel\ObjectProxy\ProxyList\Proxy;
 use ReactParallel\ObjectProxy\ProxyListInterface;
 
 final class ProxyList implements ProxyListInterface
@@ -19,12 +20,9 @@ final class ProxyList implements ProxyListInterface
         return array_key_exists($interface, self::KNOWN_INTERFACE);
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function get(string $interface): array
+    public function get(string $interface): Proxy
     {
-        return self::KNOWN_INTERFACE[$interface];
+        return new Proxy(self::KNOWN_INTERFACE[$interface]['direct'], self::KNOWN_INTERFACE[$interface]['deferred']);
     }
 
     /**

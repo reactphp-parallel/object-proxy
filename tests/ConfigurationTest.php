@@ -7,6 +7,7 @@ namespace ReactParallel\Tests\ObjectProxy;
 use React\EventLoop\StreamSelectLoop;
 use ReactParallel\Factory as ParallelFactory;
 use ReactParallel\ObjectProxy\Configuration;
+use ReactParallel\ObjectProxy\ProxyList\Proxy;
 use ReactParallel\ObjectProxy\ProxyListInterface;
 use WyriHaximus\AsyncTestUtilities\AsyncTestCase;
 
@@ -26,12 +27,9 @@ final class ConfigurationTest extends AsyncTestCase
                 return false;
             }
 
-            /**
-             * @inheritDoc
-             */
-            public function get(string $interface): array
+            public function get(string $interface): Proxy
             {
-                return [];
+                return new Proxy('lol', 'wut');
             }
 
             /**
