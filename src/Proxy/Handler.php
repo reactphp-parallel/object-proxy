@@ -51,6 +51,7 @@ final class Handler implements EventEmitterInterface
     private ?Counters $counterNotify   = null;
     private ?Counters $counterCall     = null;
     private ?Counters $counterDestruct = null;
+    private ?Counters $counterError    = null;
     /** @var array<string, string|false> */
     private array $detectedClasses = [];
 
@@ -68,6 +69,7 @@ final class Handler implements EventEmitterInterface
             $this->counterCall     = $metrics->callCounter();
             $this->counterNotify   = $metrics->notifyCounter();
             $this->counterDestruct = $metrics->destructCounter();
+            $this->counterError    = $metrics->errorCounter();
         }
 
         $this->setUpHandlers();
@@ -177,6 +179,18 @@ final class Handler implements EventEmitterInterface
             $instance->object()->{$notify->method()}(...$notify->args());
         } catch (Throwable $throwable) {/** @phpstan-ignore-line */
             $this->emit('error', [$throwable]);
+
+            if ($this->counterError instanceof Counters) {
+                /**
+                 * @psalm-suppress PossiblyUndefinedVariable
+                 */
+                $this->counterError->counter(
+                    new Label('class', $instance->class()), /** @phpstan-ignore-line */
+                    new Label('interface', $instance->interface()), /** @phpstan-ignore-line */
+                    new Label('throwable', get_class($throwable)),
+                    new Label('type', 'notify')
+                )->incr();
+            }
         }
     }
 
@@ -214,6 +228,18 @@ final class Handler implements EventEmitterInterface
             $outcome = $instance->object()->{$call->method()}(...$call->args());
         } catch (Throwable $throwable) {/** @phpstan-ignore-line */
             $call->channel()->send(new Outcome($throwable));
+
+            if ($this->counterError instanceof Counters) {
+                /**
+                 * @psalm-suppress PossiblyUndefinedVariable
+                 */
+                $this->counterError->counter(
+                    new Label('class', $instance->class()), /** @phpstan-ignore-line */
+                    new Label('interface', $instance->interface()), /** @phpstan-ignore-line */
+                    new Label('throwable', get_class($throwable)),
+                    new Label('type', 'call')
+                )->incr();
+            }
 
             return;
         }

@@ -14,13 +14,15 @@ final class Metrics
     private Counters $notifyCounter;
     private Counters $callCounter;
     private Counters $destructCounter;
+    private Counters $errorCounter;
 
-    public function __construct(Counters $counterCreate, Counters $counterNotify, Counters $counterCall, Counters $counterDestruct)
+    public function __construct(Counters $counterCreate, Counters $counterNotify, Counters $counterCall, Counters $counterDestruct, Counters $counterError)
     {
         $this->createCounter   = $counterCreate;
         $this->notifyCounter   = $counterNotify;
         $this->callCounter     = $counterCall;
         $this->destructCounter = $counterDestruct;
+        $this->errorCounter    = $counterError;
     }
 
     public static function create(Registry $registry): self
@@ -50,6 +52,14 @@ final class Metrics
                 new Label\Name('class'),
                 new Label\Name('interface'),
             ),
+            $registry->counter(
+                'react_parallel_object_proxy_error',
+                'Number of errors when calling/notifying proxies',
+                new Label\Name('class'),
+                new Label\Name('interface'),
+                new Label\Name('throwable'),
+                new Label\Name('type'),
+            ),
         );
     }
 
@@ -71,5 +81,10 @@ final class Metrics
     public function destructCounter(): Counters
     {
         return $this->destructCounter;
+    }
+
+    public function errorCounter(): Counters
+    {
+        return $this->errorCounter;
     }
 }

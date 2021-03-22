@@ -252,10 +252,10 @@ final class ProxyTest extends AsyncTestCase
             self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 128', $txt);
             self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 128', $txt);
         } else {
-            self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 132', $txt);
+            self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 133', $txt);
             self::assertStringContainsString('react_parallel_object_proxy_create_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 129', $txt);
             self::assertStringContainsString('react_parallel_object_proxy_notify_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Counter",interface="WyriHaximus\\\\Metrics\\\\Counter"} 129', $txt);
-            self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 133', $txt);
+            self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry",interface="WyriHaximus\\\\Metrics\\\\Registry"} 134', $txt);
             self::assertStringContainsString('react_parallel_object_proxy_call_total{class="WyriHaximus\\\\Metrics\\\\InMemory\\\\Registry\\\\Counters",interface="WyriHaximus\\\\Metrics\\\\Registry\\\\Counters"} 129', $txt);
         }
 
@@ -482,10 +482,12 @@ final class ProxyTest extends AsyncTestCase
      */
     public function notifyThrows(): void
     {
-        $errors  = [];
-        $loop    = EventLoopFactory::create();
-        $factory = new Factory($loop);
-        $proxy   = new Proxy(new Configuration($factory));
+        $errors        = [];
+        $loop          = EventLoopFactory::create();
+        $factory       = new Factory($loop);
+        $configuration = MetricsConfiguration::create()->withClock(FrozenClock::fromUTC());
+        $registry      = new InMemmoryRegistry($configuration);
+        $proxy         = (new Proxy((new Configuration($factory))->withMetrics(Metrics::create($registry))));
         $proxy->on('error', static function (Throwable $throwable) use (&$errors): void {
             $errors[] = $throwable;
         });
@@ -514,5 +516,10 @@ final class ProxyTest extends AsyncTestCase
         foreach ($errors as $error) {
             self::assertStringContainsString('Tree!', (string) $error);
         }
+
+        self::assertStringContainsString(
+            'react_parallel_object_proxy_error_total{class="Monolog\\\\Logger",interface="Psr\\\\Log\\\\LoggerInterface",throwable="Exception",type="notify"} 1',
+            $registry->print(new Prometheus())
+        );
     }
 }
