@@ -22,4 +22,18 @@ interface EdgeCaseInterface
      * @phpstan-ignore-next-line
      */
     public function noPromises(EdgeCaseInterface $edgeCase): PromiseInterface;
+
+    /**
+     * @return Observable<EdgeCaseInterface>
+     *
+     * @phpstan-ignore-next-line
+     */
+    public function leInception(SameClassInTheSameNamespace $edgeCase): Observable;
+
+    /**
+     * @return PromiseInterface<EdgeCaseInterface>
+     *
+     * @phpstan-ignore-next-line
+     */
+    public function leNoPromises(SameClassInTheSameNamespace $edgeCase): PromiseInterface;
 }
