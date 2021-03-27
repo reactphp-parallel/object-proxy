@@ -247,7 +247,7 @@ final class DeferredInterfaceProxier
                 continue;
             }
 
-            $namespacedClassType = self::NAMESPACE_GLUE . $this->namespace . self::NAMESPACE_GLUE . (string) $param->type;
+            $namespacedClassType = $this->namespace . self::NAMESPACE_GLUE . (string) $param->type;
             if (array_key_exists((string) $param->type, $this->useAliases)) {
                 continue;
             }
