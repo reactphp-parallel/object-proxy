@@ -60,6 +60,9 @@ backward-compatibility-check: ## Check code for backwards incompatible changes
 task-list-ci:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%s\n", $$1}' | jq --raw-input --slurp -c 'split("\n")| .[0:-1]'
 
+example-list-ci:
+	@ls examples -1 | sed -e 's/\.php$$//' | jq -csR '. | rtrimstr("\n") | split("\n")'
+
 help:
 	@printf "\033[33mUsage:\033[0m\n  make [target]\n\n\033[33mTargets:\033[0m\n"
 	@printf "  \033[32m%-32s\033[0m %s\n"  "all" "Runs everything"

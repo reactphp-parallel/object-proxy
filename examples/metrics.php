@@ -4,6 +4,7 @@ use React\EventLoop\Factory;
 use ReactParallel\Factory as ParallelFactory;
 use ReactParallel\ObjectProxy\Configuration;
 use ReactParallel\ObjectProxy\Configuration\Metrics;
+use ReactParallel\ObjectProxy\Generated\Proxies\WyriHaximus\Metrics\Registry as RegistryProxy;
 use ReactParallel\ObjectProxy\Generated\WyriHaximus__Metrics_RegistryProxy;
 use ReactParallel\ObjectProxy\Proxy;
 use WyriHaximus\Metrics\Configuration as MetricsConfiguration;
@@ -22,7 +23,7 @@ $pool = $parallelFactory->limitedPool(1);
 $proxy = new Proxy((new Configuration($parallelFactory))->withMetrics(Metrics::create($registry)));
 $registryProxy = $proxy->thread(new InMemoryRegistry(MetricsConfiguration::create()), Registry::class);
 $registry->register($registryProxy);
-$fun = static function (WyriHaximus__Metrics_RegistryProxy $registry): int {
+$fun = static function (RegistryProxy $registry): int {
     $registry->setDeferredCallHandler(new Proxy\DeferredCallHandler());
     for ($i = 0; $i < 10; $i++) {
         $registry->counter('name', 'description', new Label\Name('label'))->counter(new Label('label', 'label'))->incr();

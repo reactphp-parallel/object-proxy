@@ -23,9 +23,9 @@ $parallelFactory->call(static function (LoggerInterface $logger, int $time): int
     $logger->critical('Time: ' . $time);
 
     return $time;
-}, [$loggerProxy, time()])->then(static function(int $time) use ($parallelFactory): void {
+}, [$loggerProxy, time()])->then(static function(int $time) use ($loop): void {
     echo 'Time: ', $time;
-    $parallelFactory->lowLevelPool()->kill();
+    $loop->stop();
 })->done();
 
 $loop->run();
