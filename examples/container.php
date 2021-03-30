@@ -34,9 +34,9 @@ $parallelFactory->call(static function (ContainerInterface $container, int $time
     }
 
     return $time;
-}, [$containerProxy, time()])->then(static function(int $time) use ($parallelFactory): void {
+}, [$containerProxy, time()])->then(static function(int $time) use ($loop): void {
     echo 'Time: ', $time;
-    $parallelFactory->lowLevelPool()->kill();
+    $loop->stop();
 })->done();
 
 $loop->run();
