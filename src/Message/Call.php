@@ -6,7 +6,7 @@ namespace ReactParallel\ObjectProxy\Message;
 
 use parallel\Channel;
 
-final class Call
+final class Call implements Message
 {
     private Channel $channel;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Message;
 
-final class Destruct
+final class Destruct implements Message
 {
     private string $hash;
     private string $objectHash;

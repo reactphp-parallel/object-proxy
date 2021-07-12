@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ReactParallel\ObjectProxy\Message;
 
-final class Notify
+final class Notify implements Message
 {
     private string $hash;
     private string $objectHash;
