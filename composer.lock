@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "74d1f14c4fd7b70d454b21cde32daeb9",
+    "content-hash": "d278ba8f31dd0dde716473d4fe280bf1",
     "packages": [
         {
             "name": "api-clients/rx",
@@ -2093,16 +2093,16 @@
         },
         {
             "name": "wyrihaximus/react-mutex-contracts",
-            "version": "1.1.0",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/reactphp-mutex-contracts.git",
-                "reference": "b5a5567128035b4c8ce924fcb36e56c72fca7775"
+                "reference": "f72ad4aff97a96ebb61fe8b0d7fd1500db630f28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/reactphp-mutex-contracts/zipball/b5a5567128035b4c8ce924fcb36e56c72fca7775",
-                "reference": "b5a5567128035b4c8ce924fcb36e56c72fca7775",
+                "url": "https://api.github.com/repos/WyriHaximus/reactphp-mutex-contracts/zipball/f72ad4aff97a96ebb61fe8b0d7fd1500db630f28",
+                "reference": "f72ad4aff97a96ebb61fe8b0d7fd1500db630f28",
                 "shasum": ""
             },
             "require": {
@@ -2125,7 +2125,7 @@
             "description": "Mutex locking contracts for ReactPHP projects",
             "support": {
                 "issues": "https://github.com/WyriHaximus/reactphp-mutex-contracts/issues",
-                "source": "https://github.com/WyriHaximus/reactphp-mutex-contracts/tree/1.1.0"
+                "source": "https://github.com/WyriHaximus/reactphp-mutex-contracts/tree/2.0.0"
             },
             "funding": [
                 {
@@ -2133,7 +2133,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-04-03T20:22:48+00:00"
+            "time": "2021-07-24T20:09:38+00:00"
         },
         {
             "name": "wyrihaximus/string-get-in",
