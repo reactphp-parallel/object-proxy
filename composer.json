@@ -37,7 +37,7 @@
         "wyrihaximus/json-throwable": "^4.1",
         "wyrihaximus/metrics": "^1.0.2",
         "wyrihaximus/metrics-lazy-registry": "^1.0",
-        "wyrihaximus/react-mutex-contracts": "^1.0",
+        "wyrihaximus/react-mutex-contracts": "^1.0 || ^2.0",
         "wyrihaximus/string-get-in": "^1.0"
     },
     "require-dev": {
