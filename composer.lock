@@ -381,16 +381,16 @@
         },
         {
             "name": "illuminate/collections",
-            "version": "v8.69.0",
+            "version": "v8.73.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/collections.git",
-                "reference": "05f286ec5fd2dd286e8384577047efc375c8954c"
+                "reference": "bfb57bc1863689058706eb41287b7ad523d74403"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/collections/zipball/05f286ec5fd2dd286e8384577047efc375c8954c",
-                "reference": "05f286ec5fd2dd286e8384577047efc375c8954c",
+                "url": "https://api.github.com/repos/illuminate/collections/zipball/bfb57bc1863689058706eb41287b7ad523d74403",
+                "reference": "bfb57bc1863689058706eb41287b7ad523d74403",
                 "shasum": ""
             },
             "require": {
@@ -431,20 +431,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-10-22T18:01:46+00:00"
+            "time": "2021-11-15T14:44:56+00:00"
         },
         {
             "name": "illuminate/contracts",
-            "version": "v8.69.0",
+            "version": "v8.73.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
-                "reference": "e76f4bce73a2a1656add24bd5210ebc4b8af49c0"
+                "reference": "b0886ec05a63b204634d64d0b39d5b78a7c06f81"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/contracts/zipball/e76f4bce73a2a1656add24bd5210ebc4b8af49c0",
-                "reference": "e76f4bce73a2a1656add24bd5210ebc4b8af49c0",
+                "url": "https://api.github.com/repos/illuminate/contracts/zipball/b0886ec05a63b204634d64d0b39d5b78a7c06f81",
+                "reference": "b0886ec05a63b204634d64d0b39d5b78a7c06f81",
                 "shasum": ""
             },
             "require": {
@@ -479,20 +479,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2021-10-22T18:01:46+00:00"
+            "time": "2021-11-17T15:04:30+00:00"
         },
         {
             "name": "illuminate/macroable",
-            "version": "v8.69.0",
+            "version": "v8.73.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/macroable.git",
-                "reference": "300aa13c086f25116b5f3cde3ca54ff5c822fb05"
+                "reference": "aed81891a6e046fdee72edd497f822190f61c162"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/macroable/zipball/300aa13c086f25116b5f3cde3ca54ff5c822fb05",
-                "reference": "300aa13c086f25116b5f3cde3ca54ff5c822fb05",
+                "url": "https://api.github.com/repos/illuminate/macroable/zipball/aed81891a6e046fdee72edd497f822190f61c162",
+                "reference": "aed81891a6e046fdee72edd497f822190f61c162",
                 "shasum": ""
             },
             "require": {
@@ -525,7 +525,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2020-10-27T15:20:30+00:00"
+            "time": "2021-11-16T13:57:03+00:00"
         },
         {
             "name": "lcobucci/clock",
@@ -2040,28 +2040,30 @@
         },
         {
             "name": "wyrihaximus/metrics",
-            "version": "1.0.2",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/php-metrics.git",
-                "reference": "cdf8ee62b5fa6b253ec8823070ea112671757f9a"
+                "reference": "bb209f20b77401af681c25c9a886e92296c14902"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/php-metrics/zipball/cdf8ee62b5fa6b253ec8823070ea112671757f9a",
-                "reference": "cdf8ee62b5fa6b253ec8823070ea112671757f9a",
+                "url": "https://api.github.com/repos/WyriHaximus/php-metrics/zipball/bb209f20b77401af681c25c9a886e92296c14902",
+                "reference": "bb209f20b77401af681c25c9a886e92296c14902",
                 "shasum": ""
             },
             "require": {
                 "lcobucci/clock": "^2.0",
-                "php": "^7.4",
+                "php": "^7.4 || ^8.0",
                 "react-parallel/object-proxy-attributes": "^1",
                 "thecodingmachine/safe": "^1.1",
                 "wyrihaximus/constants": "^1.5"
             },
             "require-dev": {
-                "phpbench/phpbench": "^0.17.1",
-                "wyrihaximus/test-utilities": "^2.5 || ^3.0"
+                "phpbench/phpbench": "^0.17.1 || ^1.0.0",
+                "phpstan/phpstan": "^0.12.99",
+                "vimeo/psalm": "^4.12",
+                "wyrihaximus/test-utilities": "^3.7.4"
             },
             "type": "library",
             "autoload": {
@@ -2082,7 +2084,7 @@
             "description": "🕵️‍♀️ Prometheus modelled metric VO's and registry",
             "support": {
                 "issues": "https://github.com/WyriHaximus/php-metrics/issues",
-                "source": "https://github.com/WyriHaximus/php-metrics/tree/1.0.2"
+                "source": "https://github.com/WyriHaximus/php-metrics/tree/1.1.0"
             },
             "funding": [
                 {
@@ -2090,7 +2092,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-11-17T22:53:16+00:00"
+            "time": "2021-11-10T16:03:58+00:00"
         },
         {
             "name": "wyrihaximus/metrics-lazy-registry",
